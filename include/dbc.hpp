@@ -21,4 +21,15 @@
 #ifndef DBC_HPP_
 #define DBC_HPP_
 
+#include <string>
+
+namespace AS
+{
+class Database
+{
+pubilc:
+  Database(const std::string & db_text);
+};
+}
+
 #endif
