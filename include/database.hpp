@@ -21,6 +21,7 @@
 #ifndef DATABASE_HPP_
 #define DATABASE_HPP_
 
+#include <array>
 #include <exception>
 #include <fstream>
 #include <map>
@@ -34,6 +35,29 @@ namespace AS
 {
 namespace CAN
 {
+
+static constexpr std::array<unsigned char, 16> DLC_LENGTH =
+{ 0,  1,  2,  3,  4,  5,  6,  7,
+  8, 12, 16, 20, 24, 32, 48, 64 };
+
+unsigned char dlcToLength(const unsigned char & dlc)
+{
+  return DLC_LENGTH[dlc];
+}
+
+static constexpr std::array<const char[5], 9> PREAMBLES =
+{
+  "VERS",
+  "BS_:",
+  "BU_:",
+  "BO_ ",
+  "SG_ ",
+  "CM_ ",
+  "VAL_",
+  "BA_D",
+  "BA_ "
+};
+
 enum class AttributeDefType
 {
   INT,
@@ -116,6 +140,7 @@ public:
   AttributeDefType getType() override;
 };
 
+// TODO(jwhitleyastuff): Figure out how to add these later.
 class DbcObject
 {
 public:
@@ -148,6 +173,22 @@ class Signal
 {
 public:
   Signal(std::string && signal_text);
+  Signal(
+    std::string && name,
+    bool is_multiplexed,
+    std::string && multiplexer_identifier,
+    unsigned char start_bit,
+    unsigned char length,
+    Order endianness,
+    bool is_signed,
+    float factor,
+    float offset,
+    float min,
+    float max,
+    std::string && unit,
+    std::vector<BusNode> && receiving_nodes,
+    std::map<int, std::string> && value_definitions =
+      std::map<int, std::string>());
 
   const std::string getName();
   const bool isMultiplexed();
@@ -167,7 +208,7 @@ public:
   const std::string text;
 
 private:
-  std::string signal_name_;
+  std::string name_;
   bool is_multiplexed_;
   std::string multiplexer_identifier_;
   unsigned char start_bit_;
@@ -191,15 +232,28 @@ class Message
 {
 public:
   Message(std::string && message_text);
+  Message(
+    unsigned int id,
+    std::string && name,
+    unsigned char dlc,
+    BusNode && transmitting_node,
+    std::vector<Signal> && signals);
 
-  const std::vector<Signal> getSignals();
+  const unsigned int getId();
+  const std::string getName();
+  const unsigned char getDlc();
+  const unsigned char getLength();
   const BusNode getTransmittingNode();
+  const std::vector<Signal> getSignals();
 
   const std::string text;
 
 private:
-  std::vector<Signal> signals_;
+  unsigned int id_;
+  std::string name_;
+  unsigned char dlc_;
   BusNode transmitting_node_;
+  std::vector<Signal> signals_;
 
   void generateText();
   void parse();
@@ -213,6 +267,7 @@ public:
     std::string && version,
     std::string && bus_config,
     std::vector<BusNode> && bus_nodes,
+    std::vector<Message> && messages,
     std::vector<std::shared_ptr<AttributeDef>> && attribute_definitions,
     std::unordered_map<std::shared_ptr<AttributeDef>, std::string> && attribute_default_vlaues);
 
@@ -224,9 +279,6 @@ public:
   const std::unordered_map<std::shared_ptr<AttributeDef>, std::string> getAttributeDefaultValues();
 
 private:
-  void generateText();
-  void parse();
-
   std::ifstream file_reader;
   std::string version_;
   std::string bus_config_;
@@ -234,7 +286,11 @@ private:
   std::vector<Message> messages_;
   std::vector<std::shared_ptr<AttributeDef>> attribute_defs_;
   std::unordered_map<std::shared_ptr<AttributeDef>, std::string> attribute_default_values_;
+
+  void generateText();
+  void parse();
 };
+
 }  // namespace CAN
 }  // namespace AS
 
