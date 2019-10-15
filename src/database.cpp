@@ -90,14 +90,6 @@ AttributeDefType StringAttributeDef::getType()
 
 // Begin DbcObject
 
-DbcObject::DbcObject(
-  std::string && description,
-  std::unordered_map<std::string, std::string> && attribute_values)
-  : description_(std::move(description)),
-    attribute_values_(std::move(attribute_values))
-{
-}
-
 const std::string DbcObject::getDescription()
 {
   return description_;
@@ -247,6 +239,7 @@ void Signal::generateText()
 
 void Signal::parse()
 {
+  // TODO(jwhitleyastuff): Do the thing!
 }
 
 // End Signal
@@ -381,6 +374,13 @@ void Database::parse()
         }
       } else if (preamble == PREAMBLES[5]) {  // DESCRIPTION
         saveMsg(current_msg);
+
+        auto desc_type = line.substr(4, 4).c_str();
+
+        if (desc_type == PREAMBLES[2]) {  // BUS_NODE DESC
+        } else if (desc_type == PREAMBLES[3]) {  // MESSAGE DESC
+        } else if (desc_type == PREAMBLES[4]) {  // SIGNAL DESC
+        }
       } else if (preamble == PREAMBLES[6]) {  // SIGNAL_VAL_DEF
         saveMsg(current_msg);
       } else if (preamble == PREAMBLES[7]) {  // ATTRIBUTE_DEF / ATTRIBUTE_DFLT_VAL

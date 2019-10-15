@@ -153,19 +153,18 @@ public:
   AttributeDefType getType() override;
 };
 
-// TODO(jwhitleyastuff): Figure out how to add these later.
 class DbcObject
 {
 public:
-  DbcObject(
-    std::string && description = std::string(),
-    std::unordered_map<std::string, std::string> && attribute_values =
-      std::unordered_map<std::string, std::string>());
-
   const std::string getDescription();
   const bool hasDescription();
   const std::unordered_map<std::string, std::string> getAttributeValues();
   const bool hasAttributeValues();
+
+  friend class BusNode;
+  friend class Signal;
+  friend class Message;
+  friend class Database;
 
 private:
   std::string description_;
