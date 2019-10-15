@@ -51,7 +51,7 @@ static constexpr std::array<const char[5], 9> PREAMBLES =
   "BS_:",
   "BU_:",
   "BO_ ",
-  "SG_ ",
+  " SG_",
   "CM_ ",
   "VAL_",
   "BA_D",

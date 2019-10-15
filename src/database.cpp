@@ -24,7 +24,9 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
+#include <sstream>
 
 namespace AS
 {
@@ -244,7 +246,6 @@ void Signal::generateText()
 
 void Signal::parse()
 {
-  // TODO(jwhitleyastuff): Do the thing!
 }
 
 // End Signal
@@ -335,6 +336,9 @@ void Database::parse()
 {
   std::string line;
   std::vector<std::string> important_lines;
+  bool version_found = false;
+  bool bus_config_found = false;
+  bool bus_nodes_found = false;
 
   while (getline(file_reader, line)) {
     char preamble[5];
@@ -345,7 +349,38 @@ void Database::parse()
     }
   }
 
-  // TODO(jwhitleyastuff): Finish parsing
+  auto no_lines = important_lines.size();
+
+  for (auto i = 0; i < no_lines; ++i)
+  {
+    auto line_ref = important_lines.back();
+
+    if (!version_found && line_ref.substr(0, 7).c_str() == "VERSION") {
+      // Get everything after 'VERSION "', excluding last '"'
+      version_ = line_ref.substr(9, line_ref.length() - 10);
+      version_found = true;
+    } else if (!bus_config_found && line_ref.substr(0, 4).c_str() == "BS_:") {
+      // Get everything after 'BS_: '
+      bus_config_ = line_ref.substr(5, line_ref.length() - 5);
+      bus_config_found = true;
+    } else if (!bus_nodes_found && line_ref.substr(0, 4).c_str() == "BU_:") {
+      // Get everything after 'BU_: ' and split by spaces
+      std::istringstream node_list(line_ref.substr(5, line_ref.length() - 5));
+      std::vector<std::string> nodes(
+        std::istream_iterator<std::string>{node_list},
+        std::istream_iterator<std::string>());
+
+      auto node_len = nodes.size();
+      for (auto i = 0; i < node_len; ++i) {
+        bus_nodes_.emplace_back(std::move(nodes.back()));
+        nodes.pop_back();
+      }
+
+      bus_nodes_found = true;
+    }
+
+    important_lines.pop_back();
+  }
 }
 
 // End Database
