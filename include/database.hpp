@@ -47,15 +47,28 @@ unsigned char dlcToLength(const unsigned char & dlc)
 
 static constexpr std::array<const char[5], 9> PREAMBLES =
 {
-  "VERS",
-  "BS_:",
-  "BU_:",
-  "BO_ ",
-  " SG_",
-  "CM_ ",
-  "VAL_",
-  "BA_D",
-  "BA_ "
+  "VERS",  // VERSION
+  "BS_:",  // BUS_CONFIG
+  "BU_:",  // BUS_NODES
+  "BO_ ",  // MESSAGE
+  " SG_",  // SIGNAL
+  "CM_ ",  // DESCRIPTION
+  "VAL_",  // SIGNAL_VAL_DEF
+  "BA_D",  // ATTRIBUTE_DEF / ATTRIBUTE_DFLT_VAL
+  "BA_ "   // ATTRIBUTE_VAL
+};
+
+enum class DbcObjTypes
+{
+  VERSION,
+  BUS_CONFIG,
+  BUS_NODES,
+  MESSAGE,
+  SIGNAL,
+  DESCRIPTION,
+  SIGNAL_VAL_DEF,
+  ATTRIBUTE_DEF,
+  ATTRIBUTE_VAL
 };
 
 enum class AttributeDefType
@@ -248,6 +261,8 @@ public:
 
   const std::string text;
 
+  friend class Database;
+
 private:
   unsigned int id_;
   std::string name_;
@@ -289,6 +304,7 @@ private:
 
   void generateText();
   void parse();
+  void saveMsg(std::unique_ptr<Message> & msg_ptr);
 };
 
 }  // namespace CAN

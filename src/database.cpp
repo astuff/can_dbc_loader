@@ -25,6 +25,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <string>
 #include <sstream>
 
@@ -335,51 +336,69 @@ Database::Database(const std::string & dbc_path)
 void Database::parse()
 {
   std::string line;
-  std::vector<std::string> important_lines;
   bool version_found = false;
   bool bus_config_found = false;
   bool bus_nodes_found = false;
+  std::unique_ptr<Message> current_msg(nullptr);
 
   while (getline(file_reader, line)) {
-    char preamble[5];
-    std::strcpy(preamble, line.substr(0, 4).c_str());
+    if (!line.empty()) {
+      auto preamble = line.substr(0, 4).c_str();
 
-    if (std::find(std::begin(PREAMBLES), std::end(PREAMBLES), preamble) != std::end(PREAMBLES)) {
-      important_lines.push_back(std::move(line));
+      if (!version_found && preamble == PREAMBLES[0]) {  // VERSION
+        // Get everything after 'VERSION "', excluding last '"'
+        version_ = line.substr(9, line.length() - 10);
+        version_found = true;
+      } else if (!bus_config_found && preamble == PREAMBLES[1]) {  // BUS_CONFIG
+        // Get everything after 'BS_: '
+        bus_config_ = line.substr(5, line.length() - 5);
+        bus_config_found = true;
+      } else if (!bus_nodes_found && preamble == PREAMBLES[2]) {  // BUS_NODES
+        // Get everything after 'BU_: ' and split by spaces
+        std::istringstream node_list(line.substr(5, line.length() - 5));
+        std::vector<std::string> nodes(
+          std::istream_iterator<std::string>{node_list},
+          std::istream_iterator<std::string>());
+
+        // Create new BusNodes and remove from 
+        auto node_len = nodes.size();
+        for (auto i = 0; i < node_len; ++i) {
+          bus_nodes_.emplace_back(std::move(nodes.back()));
+          nodes.pop_back();
+        }
+
+        bus_nodes_found = true;
+      } else if (preamble == PREAMBLES[3]) {  // MESSAGE
+        saveMsg(current_msg);
+
+        // Create new message
+        current_msg = std::unique_ptr<Message>(new Message(std::move(line)));
+      } else if (preamble == PREAMBLES[4]) {  // SIGNAL
+        if (current_msg) {
+          // Signal found and current message is active
+          // Add signal to existing message
+          current_msg->signals_.emplace_back(std::move(line));
+        }
+      } else if (preamble == PREAMBLES[5]) {  // DESCRIPTION
+        saveMsg(current_msg);
+      } else if (preamble == PREAMBLES[6]) {  // SIGNAL_VAL_DEF
+        saveMsg(current_msg);
+      } else if (preamble == PREAMBLES[7]) {  // ATTRIBUTE_DEF / ATTRIBUTE_DFLT_VAL
+        saveMsg(current_msg);
+      } else if (preamble == PREAMBLES[8]) {  // ATTRIBUTE_VAL
+        saveMsg(current_msg);
+      }
     }
   }
 
-  auto no_lines = important_lines.size();
+  // Just in case we still have a message open
+  saveMsg(current_msg);
+}
 
-  for (auto i = 0; i < no_lines; ++i)
-  {
-    auto line_ref = important_lines.back();
-
-    if (!version_found && line_ref.substr(0, 7).c_str() == "VERSION") {
-      // Get everything after 'VERSION "', excluding last '"'
-      version_ = line_ref.substr(9, line_ref.length() - 10);
-      version_found = true;
-    } else if (!bus_config_found && line_ref.substr(0, 4).c_str() == "BS_:") {
-      // Get everything after 'BS_: '
-      bus_config_ = line_ref.substr(5, line_ref.length() - 5);
-      bus_config_found = true;
-    } else if (!bus_nodes_found && line_ref.substr(0, 4).c_str() == "BU_:") {
-      // Get everything after 'BU_: ' and split by spaces
-      std::istringstream node_list(line_ref.substr(5, line_ref.length() - 5));
-      std::vector<std::string> nodes(
-        std::istream_iterator<std::string>{node_list},
-        std::istream_iterator<std::string>());
-
-      auto node_len = nodes.size();
-      for (auto i = 0; i < node_len; ++i) {
-        bus_nodes_.emplace_back(std::move(nodes.back()));
-        nodes.pop_back();
-      }
-
-      bus_nodes_found = true;
-    }
-
-    important_lines.pop_back();
+void Database::saveMsg(std::unique_ptr<Message> & msg_ptr)
+{
+  if (msg_ptr) {
+    messages_.push_back(std::move(*(msg_ptr.release())));
   }
 }
 
