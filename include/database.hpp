@@ -26,7 +26,6 @@
 #include <fstream>
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -58,7 +57,7 @@ static constexpr std::array<const char[5], 9> PREAMBLES =
   "BA_ "   // ATTRIBUTE_VAL
 };
 
-enum class DbcObjTypes
+enum class DbcObjType
 {
   VERSION,
   BUS_CONFIG,
@@ -71,7 +70,7 @@ enum class DbcObjTypes
   ATTRIBUTE_VAL
 };
 
-enum class AttributeDefType
+enum class AttributeType
 {
   INT,
   FLOAT,
@@ -103,88 +102,200 @@ struct DbcParseException
   }
 };
 
-class AttributeDef
+class DbcObj
 {
 public:
-  AttributeDef(std::string && name);
-  virtual ~AttributeDef() {};
+  virtual ~DbcObj() {};
+  const std::string getDbcText();
 
-  virtual AttributeDefType getType() = 0;
+protected:
+  std::string dbc_text_;
+
+private:
+  virtual void generateText() = 0;
+  virtual void parse() = 0;
+};
+
+// TODO(jwhitleyastuff): Store Attribute as def, default val, and value
+
+class Attribute
+{
+public:
+  Attribute(
+    std::string && name,
+    DbcObjType && dbc_obj_type,
+    AttributeType && attr_type = AttributeType::STRING);
+  virtual ~Attribute() {};
 
   const std::string name;
+  const DbcObjType dbc_obj_type;
+  const AttributeType attr_type;
 };
 
-class EnumAttributeDef
-  : public AttributeDef
+class EnumAttribute
+  : public Attribute, public DbcObj
 {
 public:
-  EnumAttributeDef(std::string && name, std::vector<std::string> && enum_values);
-  ~EnumAttributeDef() = default;
-  AttributeDefType getType() override;
+  EnumAttribute(std::string && dbc_text);
+  EnumAttribute(
+    std::string && name,
+    DbcObjType && dbc_obj_type,
+    std::vector<std::string> && enum_values);
+  ~EnumAttribute() = default;
+
+  const std::unique_ptr<std::string> getValue();
   const std::vector<std::string> enum_values;
+
+private:
+  void generateText() override;
+  void parse() override;
+
+  std::unique_ptr<std::string> value_;
+  std::unique_ptr<std::string> default_value_;
 };
 
-class FloatAttributeDef
-  : public AttributeDef
+class FloatAttribute
+  : public Attribute, public DbcObj
 {
 public:
-  FloatAttributeDef(std::string && name, float min, float max);
-  ~FloatAttributeDef() = default;
-  AttributeDefType getType() override;
+  FloatAttribute(std::string && dbc_text);
+  FloatAttribute(
+    std::string && name,
+    DbcObjType && dbc_obj_type,
+    float min, float max);
+  ~FloatAttribute() = default;
+
+  const std::unique_ptr<float> getValue();
   const float min, max;
+
+private:
+  void generateText() override;
+  void parse() override;
+
+  std::unique_ptr<float> value_;
+  std::unique_ptr<float> default_value_;
 };
 
-class IntAttributeDef
-  : public AttributeDef
+class IntAttribute
+  : public Attribute, public DbcObj
 {
 public:
-  IntAttributeDef(std::string && name, int min, int max);
-  ~IntAttributeDef() = default;
-  AttributeDefType getType() override;
+  IntAttribute(
+    std::string && name,
+    DbcObjType && dbc_obj_type,
+    int min, int max);
+  ~IntAttribute() = default;
+
+  const std::unique_ptr<int> getValue();
   const int min, max;
+
+private:
+  void generateText() override;
+  void parse() override;
+
+  std::unique_ptr<int> value_;
+  std::unique_ptr<int> default_value_;
 };
 
-class StringAttributeDef
-  : public AttributeDef
+class StringAttribute
+  : public Attribute, public DbcObj
 {
 public:
-  StringAttributeDef(std::string && name);
-  ~StringAttributeDef() = default;
-  AttributeDefType getType() override;
+  StringAttribute(
+    std::string && name,
+    DbcObjType && dbc_obj_type);
+  ~StringAttribute() = default;
+
+  const std::unique_ptr<std::string> getValue();
+
+private:
+  void generateText() override;
+  void parse() override;
+
+  std::unique_ptr<std::string> value_;
+  std::unique_ptr<std::string> default_value_;
 };
 
-class DbcObject
+class BusNodeComment
+  : public DbcObj
 {
 public:
-  const std::string getDescription();
-  const bool hasDescription();
+  BusNodeComment(std::string && dbc_text);
+  BusNodeComment(
+    std::string && bus_node_name,
+    std::string && comment);
+
+  const std::string node_name;
+  const std::string comment;
+
+private:
+  void generateText() override;
+  void parse() override;
+};
+
+class MessageComment
+  : public DbcObj
+{
+public:
+  MessageComment(std::string && dbc_text);
+  MessageComment(unsigned int msg_id, std::string && comment);
+
+  const unsigned int msg_id;
+  const std::string comment;
+
+private:
+  void generateText() override;
+  void parse() override;
+};
+
+class SignalComment
+  : public DbcObj
+{
+public:
+  SignalComment(std::string && dbc_text);
+  SignalComment(
+    unsigned int msg_id,
+    std::string && signal_name,
+    std::string && comment);
+
+  const unsigned int msg_id;
+  const std::string signal_name;
+  const std::string comment;
+
+private:
+  void generateText() override;
+  void parse() override;
+};
+
+class AttributeObject
+{
+public:
   const std::unordered_map<std::string, std::string> getAttributeValues();
   const bool hasAttributeValues();
 
-  friend class BusNode;
-  friend class Signal;
-  friend class Message;
-  friend class Database;
-
-private:
-  std::string description_;
+protected:
   std::unordered_map<std::string, std::string> attribute_values_;
 };
 
 class BusNode
-  : public DbcObject
+  : public AttributeObject
 {
 public:
   BusNode(std::string && node_name);
 
+  const std::shared_ptr<BusNodeComment> getComment();
+
   const std::string name;
+
+private:
+  std::shared_ptr<BusNodeComment> comment_;
 };
 
 class Signal
-  : public DbcObject
+  : public DbcObj, public AttributeObject
 {
 public:
-  Signal(std::string && signal_text);
+  Signal(std::string && dbc_text);
   Signal(
     std::string && name,
     bool is_multiplexed,
@@ -216,8 +327,10 @@ public:
   const std::string getUnit();
   const std::vector<BusNode> getReceivingNodes();
   const std::map<int, std::string> getValueDefinitions();
+  const std::shared_ptr<SignalComment> getComment();
 
-  const std::string text;
+  friend class Message;
+  friend class Database;
 
 private:
   std::string name_;
@@ -234,16 +347,17 @@ private:
   std::string unit_;
   std::vector<BusNode> receiving_nodes_;
   std::map<int, std::string> value_defs_;
+  std::shared_ptr<SignalComment> comment_;
   
-  void generateText();
-  void parse();
+  void generateText() override;
+  void parse() override;
 };
 
 class Message
-  : public DbcObject
+  : public DbcObj, public AttributeObject
 {
 public:
-  Message(std::string && message_text);
+  Message(std::string && dbc_text);
   Message(
     unsigned int id,
     std::string && name,
@@ -257,8 +371,7 @@ public:
   const unsigned char getLength();
   const BusNode getTransmittingNode();
   const std::vector<Signal> getSignals();
-
-  const std::string text;
+  const std::shared_ptr<MessageComment> getComment();
 
   friend class Database;
 
@@ -268,9 +381,10 @@ private:
   unsigned char dlc_;
   BusNode transmitting_node_;
   std::vector<Signal> signals_;
+  std::shared_ptr<MessageComment> comment_;
 
-  void generateText();
-  void parse();
+  void generateText() override;
+  void parse() override;
 };
 
 class Database
@@ -281,27 +395,24 @@ public:
     std::string && version,
     std::string && bus_config,
     std::vector<BusNode> && bus_nodes,
-    std::vector<Message> && messages,
-    std::vector<std::shared_ptr<AttributeDef>> && attribute_definitions,
-    std::unordered_map<std::shared_ptr<AttributeDef>, std::string> && attribute_default_vlaues);
+    std::unordered_map<unsigned int, Message> && messages,
+    std::vector<std::shared_ptr<Attribute>> && attribute_definitions);
 
+  void generateDbcFile(const std::string & dbc_path);
   const std::string getVersion();
   const std::string getBusConfig();
   const std::vector<BusNode> getBusNodes();
-  const std::vector<Message> getMessages();
-  const std::vector<AttributeDef> getAttributeDefinitions();
-  const std::unordered_map<std::shared_ptr<AttributeDef>, std::string> getAttributeDefaultValues();
+  const std::unordered_map<unsigned int, Message> getMessages();
+  const std::vector<std::shared_ptr<Attribute>> getAttributeDefinitions();
 
 private:
   std::ifstream file_reader;
   std::string version_;
   std::string bus_config_;
   std::vector<BusNode> bus_nodes_;
-  std::vector<Message> messages_;
-  std::vector<std::shared_ptr<AttributeDef>> attribute_defs_;
-  std::unordered_map<std::shared_ptr<AttributeDef>, std::string> attribute_default_values_;
+  std::unordered_map<unsigned int, Message> messages_;
+  std::vector<std::shared_ptr<Attribute>> attribute_defs_;
 
-  void generateText();
   void parse();
   void saveMsg(std::unique_ptr<Message> & msg_ptr);
 };

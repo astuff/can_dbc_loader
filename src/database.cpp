@@ -34,98 +34,222 @@ namespace AS
 namespace CAN
 {
 
+// Begin DbcObj
+
+const std::string DbcObj::getDbcText()
+{
+  return dbc_text_;
+}
+
+// End DbcObj
+
 // Begin Attribute Definitions
 
-AttributeDef::AttributeDef(std::string && name)
-  : name(std::move(name))
+Attribute::Attribute(
+  std::string && name,
+  DbcObjType && dbc_obj_type,
+  AttributeType && attr_type)
+  : name(name),
+    dbc_obj_type(dbc_obj_type),
+    attr_type(attr_type)
 {
 }
 
-EnumAttributeDef::EnumAttributeDef(std::string && name, std::vector<std::string> && enum_values)
-  : AttributeDef(std::move(name)),
-    enum_values(std::move(enum_values))
+EnumAttribute::EnumAttribute(
+  std::string && name,
+  DbcObjType && dbc_obj_type,
+  std::vector<std::string> && enum_values)
+  : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::ENUM),
+    enum_values(enum_values), value_(nullptr), default_value_(nullptr)
 {
 }
 
-AttributeDefType EnumAttributeDef::getType()
+const std::unique_ptr<std::string> EnumAttribute::getValue()
 {
-  return AttributeDefType::ENUM;
+  if (value_) {
+    return std::make_unique<std::string>(*value_);
+  } else if (default_value_) {
+    return std::make_unique<std::string>(*default_value_);
+  } else {
+    return nullptr;
+  }
 }
 
-FloatAttributeDef::FloatAttributeDef(std::string && name, float min, float max)
-  : AttributeDef(std::move(name)),
-    min(min),
-    max(max)
-{
-}
-
-AttributeDefType FloatAttributeDef::getType()
-{
-  return AttributeDefType::FLOAT;
-}
-
-IntAttributeDef::IntAttributeDef(std::string && name, int min, int max)
-  : AttributeDef(std::move(name)),
-    min(min),
-    max(max)
+FloatAttribute::FloatAttribute(
+  std::string && name,
+  DbcObjType && dbc_obj_type,
+  float min, float max)
+  : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::FLOAT),
+    min(min), max(max), value_(nullptr), default_value_(nullptr)
 {
 }
 
-AttributeDefType IntAttributeDef::getType()
+const std::unique_ptr<float> FloatAttribute::getValue()
 {
-  return AttributeDefType::INT;
+  if (value_) {
+    return std::make_unique<float>(*value_);
+  } else if (default_value_) {
+    return std::make_unique<float>(*default_value_);
+  } else {
+    return nullptr;
+  }
 }
 
-StringAttributeDef::StringAttributeDef(std::string && name)
-  : AttributeDef(std::move(name))
+IntAttribute::IntAttribute(
+  std::string && name,
+  DbcObjType && dbc_obj_type,
+  int min, int max)
+  : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::INT),
+    min(min), max(max), value_(nullptr), default_value_(nullptr)
 {
 }
 
-AttributeDefType StringAttributeDef::getType()
+const std::unique_ptr<int> IntAttribute::getValue()
 {
-  return AttributeDefType::STRING;
+  if (value_) {
+    return std::make_unique<int>(*value_);
+  } else if (default_value_) {
+    return std::make_unique<int>(*default_value_);
+  } else {
+    return nullptr;
+  }
+}
+
+StringAttribute::StringAttribute(
+  std::string && name,
+  DbcObjType && dbc_obj_type)
+  : Attribute(std::move(name), std::move(dbc_obj_type)),
+    value_(nullptr), default_value_(nullptr)
+{
+}
+
+const std::unique_ptr<std::string> StringAttribute::getValue()
+{
+  if (value_) {
+    return std::make_unique<std::string>(*value_);
+  } else if (default_value_) {
+    return std::make_unique<std::string>(*default_value_);
+  } else {
+    return nullptr;
+  }
 }
 
 // End Attribute Definitions
 
-// Begin DbcObject
+// Begin Comments
 
-const std::string DbcObject::getDescription()
+BusNodeComment::BusNodeComment(std::string && dbc_text)
 {
-  return description_;
+  dbc_text_ = std::move(dbc_text);
+  parse();
 }
 
-const bool DbcObject::hasDescription()
+BusNodeComment::BusNodeComment(std::string && bus_node_name, std::string && comment)
+  : node_name(bus_node_name),
+    comment(comment)
 {
-  return (!description_.empty());
+  generateText();
 }
 
-const std::unordered_map<std::string, std::string> DbcObject::getAttributeValues()
+void BusNodeComment::generateText()
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+void BusNodeComment::parse()
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+MessageComment::MessageComment(std::string && dbc_text)
+  : msg_id(0)
+{
+  dbc_text_ = std::move(dbc_text);
+  parse();
+}
+
+MessageComment::MessageComment(unsigned int msg_id, std::string && comment)
+  : msg_id(msg_id),
+    comment(comment)
+{
+  generateText();
+}
+
+void MessageComment::generateText()
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+void MessageComment::parse()
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+SignalComment::SignalComment(std::string && dbc_text)
+  : msg_id(0),
+    signal_name("")
+{
+  dbc_text_ = std::move(dbc_text);
+  parse();
+}
+
+SignalComment::SignalComment(
+  unsigned int msg_id,
+  std::string && signal_name,
+  std::string && comment)
+  : msg_id(msg_id),
+    signal_name(signal_name),
+    comment(comment)
+{
+  generateText();
+}
+
+void SignalComment::generateText()
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+void SignalComment::parse()
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+// End Comments
+
+// Begin AttributeObject
+
+const std::unordered_map<std::string, std::string> AttributeObject::getAttributeValues()
 {
   return attribute_values_;
 }
 
-const bool DbcObject::hasAttributeValues()
+const bool AttributeObject::hasAttributeValues()
 {
   return (attribute_values_.size() < 1);
 }
 
-// End DbcObject
+// End AttributeObject
 
 // Begin BusNode
 
 BusNode::BusNode(std::string && node_name)
-  : name(std::move(node_name))
+  : name(node_name),
+    comment_(nullptr)
 {
+}
+
+const std::shared_ptr<BusNodeComment> BusNode::getComment()
+{
+  return std::shared_ptr<BusNodeComment>(comment_);
 }
 
 // End BusNode
 
 // Begin Signal
 
-Signal::Signal(std::string && signal_text)
-  : text(std::move(signal_text))
+Signal::Signal(std::string && dbc_text)
 {
+  dbc_text_ = std::move(dbc_text);
   parse();
 }
 
@@ -144,9 +268,9 @@ Signal::Signal(
   std::string && unit, 
   std::vector<BusNode> && receiving_nodes,
   std::map<int, std::string> && value_definitions)
-  : name_(std::move(name)),
+  : name_(name),
     is_multiplexed_(is_multiplexed),
-    multiplexer_identifier_(std::move(multiplexer_identifier)),
+    multiplexer_identifier_(multiplexer_identifier),
     start_bit_(start_bit),
     length_(length),
     endianness_(endianness),
@@ -155,9 +279,9 @@ Signal::Signal(
     offset_(offset),
     min_(min),
     max_(max),
-    unit_(std::move(unit)),
-    receiving_nodes_(std::move(receiving_nodes)),
-    value_defs_(std::move(value_definitions))
+    unit_(unit),
+    receiving_nodes_(receiving_nodes),
+    value_defs_(value_definitions)
 {
   generateText();
 }
@@ -232,6 +356,11 @@ const std::map<int, std::string> Signal::getValueDefinitions()
   return value_defs_;
 }
 
+const std::shared_ptr<SignalComment> Signal::getComment()
+{
+  return std::shared_ptr<SignalComment>(comment_);
+}
+
 void Signal::generateText()
 {
   // TODO(jwhitleyastuff): Do the thing!
@@ -247,9 +376,9 @@ void Signal::parse()
 // Begin Message
 
 Message::Message(std::string && message_text)
-  : text(std::move(message_text)),
-    transmitting_node_(BusNode(""))
+  : transmitting_node_(BusNode(""))
 {
+  dbc_text_ = std::move(message_text);
   parse();
 }
 
@@ -260,10 +389,10 @@ Message::Message(
   BusNode && transmitting_node,
   std::vector<Signal> && signals)
   : id_(id),
-    name_(std::move(name)),
+    name_(name),
     dlc_(dlc),
-    transmitting_node_(std::move(transmitting_node)),
-    signals_(std::move(signals))
+    transmitting_node_(transmitting_node),
+    signals_(signals)
 {
   generateText();
 }
@@ -298,6 +427,11 @@ const std::vector<Signal> Message::getSignals()
   return signals_;
 }
 
+const std::shared_ptr<MessageComment> Message::getComment()
+{
+  return std::shared_ptr<MessageComment>(comment_);
+}
+
 void Message::generateText()
 {
   // TODO(jwhitleyastuff): Do the thing!
@@ -326,6 +460,50 @@ Database::Database(const std::string & dbc_path)
   file_reader.close();
 }
 
+Database::Database(
+  std::string && version,
+  std::string && bus_config,
+  std::vector<BusNode> && bus_nodes,
+  std::unordered_map<unsigned int, Message> && messages,
+  std::vector<std::shared_ptr<Attribute>> && attribute_definitions)
+  : version_(version),
+    bus_config_(bus_config),
+    bus_nodes_(bus_nodes),
+    messages_(messages),
+    attribute_defs_(attribute_definitions)
+{
+}
+
+void Database::generateDbcFile(const std::string & dbc_path)
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+const std::string Database::getVersion()
+{
+  return version_;
+}
+
+const std::string Database::getBusConfig()
+{
+  return bus_config_;
+}
+
+const std::vector<BusNode> Database::getBusNodes()
+{
+  return std::vector<BusNode>(bus_nodes_);
+}
+
+const std::unordered_map<unsigned int, Message> Database::getMessages()
+{
+  return std::unordered_map<unsigned int, Message>(messages_);
+}
+
+const std::vector<std::shared_ptr<Attribute>> Database::getAttributeDefinitions()
+{
+  return std::vector<std::shared_ptr<Attribute>>(attribute_defs_);
+}
+
 void Database::parse()
 {
   std::string line;
@@ -333,6 +511,9 @@ void Database::parse()
   bool bus_config_found = false;
   bool bus_nodes_found = false;
   std::unique_ptr<Message> current_msg(nullptr);
+  std::vector<BusNodeComment> bus_node_comments;
+  std::vector<MessageComment> message_comments;
+  std::vector<SignalComment> signal_comments;
 
   while (getline(file_reader, line)) {
     if (!line.empty()) {
@@ -372,14 +553,29 @@ void Database::parse()
           // Add signal to existing message
           current_msg->signals_.emplace_back(std::move(line));
         }
-      } else if (preamble == PREAMBLES[5]) {  // DESCRIPTION
+      } else if (preamble == PREAMBLES[5]) {  // COMMENT
         saveMsg(current_msg);
 
+        // Descriptions can only be added to their associated
+        // database objects after the rest of the DBC has been parsed.
+        // This is why they are stored in separate vectors.
         auto desc_type = line.substr(4, 4).c_str();
+        auto desc_begin = line.find('"', 8);
 
-        if (desc_type == PREAMBLES[2]) {  // BUS_NODE DESC
-        } else if (desc_type == PREAMBLES[3]) {  // MESSAGE DESC
-        } else if (desc_type == PREAMBLES[4]) {  // SIGNAL DESC
+        if (desc_begin != std::string::npos)
+        {
+          // Everything between the parentheses
+          auto desc = line.substr(desc_begin, line.length() - desc_begin - 1);
+
+          if (desc_type == PREAMBLES[2]) {  // BUS_NODE COMMENT
+            bus_node_comments.emplace_back(std::move(line));
+          } else if (desc_type == PREAMBLES[3]) {  // MESSAGE COMMENT
+            message_comments.emplace_back(std::move(line));
+          } else if (desc_type == PREAMBLES[4]) {  // SIGNAL COMMENT
+            signal_comments.emplace_back(std::move(line));
+          }
+        } else {
+          throw DbcParseException();
         }
       } else if (preamble == PREAMBLES[6]) {  // SIGNAL_VAL_DEF
         saveMsg(current_msg);
@@ -393,12 +589,19 @@ void Database::parse()
 
   // Just in case we still have a message open
   saveMsg(current_msg);
+  
+  // TODO(jwhitleyastuff): Apply comments to DB objects
+
+  // TODO(jwhitleyastuff): Apply attributes to DB objects
+
+  // TODO(jwhitleyastuff): Add value lists to signals
 }
 
 void Database::saveMsg(std::unique_ptr<Message> & msg_ptr)
 {
   if (msg_ptr) {
-    messages_.push_back(std::move(*(msg_ptr.release())));
+    unsigned int id = msg_ptr->getId();
+    messages_.emplace(id, std::move(*(msg_ptr.release())));
   }
 }
 

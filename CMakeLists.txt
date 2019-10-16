@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 project(can_dbc_loader)
 
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
 include_directories(include)
 
 add_library(
