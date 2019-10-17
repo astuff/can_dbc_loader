@@ -18,20 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef DATABASE_HPP_
-#define DATABASE_HPP_
-
-#include "common_defs.hpp"
-#include "attribute.hpp"
-#include "bus_node.hpp"
-#include "comment.hpp"
 #include "message.hpp"
 
-#include <fstream>
-#include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace AS
@@ -41,38 +31,78 @@ namespace CAN
 namespace DbcLoader
 {
 
-class Database
+Message::Message(std::string && message_text)
+  : transmitting_node_(BusNode(""))
 {
-public:
-  Database(const std::string & dbc_path);
-  Database(
-    std::string && version,
-    std::string && bus_config,
-    std::vector<BusNode> && bus_nodes,
-    std::unordered_map<unsigned int, Message> && messages,
-    std::vector<std::shared_ptr<Attribute>> && attribute_definitions);
+  dbc_text_ = std::move(message_text);
+  parse();
+}
 
-  void generateDbcFile(const std::string & dbc_path);
-  const std::string getVersion();
-  const std::string getBusConfig();
-  const std::vector<BusNode> getBusNodes();
-  const std::unordered_map<unsigned int, Message> getMessages();
-  const std::vector<std::shared_ptr<Attribute>> getAttributeDefinitions();
+Message::Message(
+  unsigned int id,
+  std::string && name,
+  unsigned char dlc,
+  BusNode && transmitting_node,
+  std::vector<Signal> && signals)
+  : id_(id),
+    name_(name),
+    dlc_(dlc),
+    transmitting_node_(transmitting_node),
+    signals_(signals)
+{
+  generateText();
+}
 
-private:
-  std::ifstream file_reader;
-  std::string version_;
-  std::string bus_config_;
-  std::vector<BusNode> bus_nodes_;
-  std::unordered_map<unsigned int, Message> messages_;
-  std::vector<std::shared_ptr<Attribute>> attribute_defs_;
+const unsigned int Message::getId()
+{
+  return id_;
+}
 
-  void parse();
-  void saveMsg(std::unique_ptr<Message> & msg_ptr);
-};
+const std::string Message::getName()
+{
+  return name_;
+}
+
+const unsigned char Message::getDlc()
+{
+  return dlc_;
+}
+
+const unsigned char Message::getLength()
+{
+  return dlcToLength(dlc_);
+}
+
+const BusNode Message::getTransmittingNode()
+{
+  return transmitting_node_;
+}
+
+const std::vector<Signal> Message::getSignals()
+{
+  return signals_;
+}
+
+const std::shared_ptr<MessageComment> Message::getComment()
+{
+  return std::shared_ptr<MessageComment>(comment_);
+}
+
+void Message::generateText()
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+void Message::parse()
+{
+  // TODO(jwhitleyastuff): Do the thing!
+}
+
+const unsigned char Message::dlcToLength(const unsigned char & dlc)
+{
+  return DLC_LENGTH[dlc];
+}
 
 }  // namespace DbcLoader
 }  // namespace CAN
 }  // namespace AS
-
-#endif

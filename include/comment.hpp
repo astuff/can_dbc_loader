@@ -18,21 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef DATABASE_HPP_
-#define DATABASE_HPP_
+#ifndef COMMENT_HPP_
+#define COMMENT_HPP_
 
 #include "common_defs.hpp"
-#include "attribute.hpp"
-#include "bus_node.hpp"
-#include "comment.hpp"
-#include "message.hpp"
 
-#include <fstream>
-#include <map>
-#include <memory>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace AS
 {
@@ -41,38 +32,59 @@ namespace CAN
 namespace DbcLoader
 {
 
-class Database
+class BusNodeComment
+  : public DbcObj
 {
 public:
-  Database(const std::string & dbc_path);
-  Database(
-    std::string && version,
-    std::string && bus_config,
-    std::vector<BusNode> && bus_nodes,
-    std::unordered_map<unsigned int, Message> && messages,
-    std::vector<std::shared_ptr<Attribute>> && attribute_definitions);
+  BusNodeComment(std::string && dbc_text);
+  BusNodeComment(
+    std::string && bus_node_name,
+    std::string && comment);
 
-  void generateDbcFile(const std::string & dbc_path);
-  const std::string getVersion();
-  const std::string getBusConfig();
-  const std::vector<BusNode> getBusNodes();
-  const std::unordered_map<unsigned int, Message> getMessages();
-  const std::vector<std::shared_ptr<Attribute>> getAttributeDefinitions();
+  const std::string node_name;
+  const std::string comment;
 
 private:
-  std::ifstream file_reader;
-  std::string version_;
-  std::string bus_config_;
-  std::vector<BusNode> bus_nodes_;
-  std::unordered_map<unsigned int, Message> messages_;
-  std::vector<std::shared_ptr<Attribute>> attribute_defs_;
+  void generateText() override;
+  void parse() override;
+};
 
-  void parse();
-  void saveMsg(std::unique_ptr<Message> & msg_ptr);
+class MessageComment
+  : public DbcObj
+{
+public:
+  MessageComment(std::string && dbc_text);
+  MessageComment(unsigned int msg_id, std::string && comment);
+
+  const unsigned int msg_id;
+  const std::string comment;
+
+private:
+  void generateText() override;
+  void parse() override;
+};
+
+class SignalComment
+  : public DbcObj
+{
+public:
+  SignalComment(std::string && dbc_text);
+  SignalComment(
+    unsigned int msg_id,
+    std::string && signal_name,
+    std::string && comment);
+
+  const unsigned int msg_id;
+  const std::string signal_name;
+  const std::string comment;
+
+private:
+  void generateText() override;
+  void parse() override;
 };
 
 }  // namespace DbcLoader
 }  // namespace CAN
 }  // namespace AS
 
-#endif
+#endif  // COMMENT_HPP_

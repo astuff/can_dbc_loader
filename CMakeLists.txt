@@ -9,7 +9,12 @@ include_directories(include)
 
 add_library(
   can_dbc_loader SHARED
+  src/attribute.cpp
+  src/bus_node.cpp
+  src/comment.cpp
   src/database.cpp
+  src/message.cpp
+  src/signal.cpp
 )
 
 install(

@@ -18,21 +18,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef DATABASE_HPP_
-#define DATABASE_HPP_
+#ifndef BUS_NODE_HPP_
+#define BUS_NODE_HPP_
 
 #include "common_defs.hpp"
-#include "attribute.hpp"
-#include "bus_node.hpp"
 #include "comment.hpp"
-#include "message.hpp"
 
-#include <fstream>
-#include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace AS
 {
@@ -41,38 +34,22 @@ namespace CAN
 namespace DbcLoader
 {
 
-class Database
+class BusNode
+  : public AttributeObject
 {
 public:
-  Database(const std::string & dbc_path);
-  Database(
-    std::string && version,
-    std::string && bus_config,
-    std::vector<BusNode> && bus_nodes,
-    std::unordered_map<unsigned int, Message> && messages,
-    std::vector<std::shared_ptr<Attribute>> && attribute_definitions);
+  BusNode(std::string && node_name);
 
-  void generateDbcFile(const std::string & dbc_path);
-  const std::string getVersion();
-  const std::string getBusConfig();
-  const std::vector<BusNode> getBusNodes();
-  const std::unordered_map<unsigned int, Message> getMessages();
-  const std::vector<std::shared_ptr<Attribute>> getAttributeDefinitions();
+  const std::shared_ptr<BusNodeComment> getComment();
+
+  const std::string name;
 
 private:
-  std::ifstream file_reader;
-  std::string version_;
-  std::string bus_config_;
-  std::vector<BusNode> bus_nodes_;
-  std::unordered_map<unsigned int, Message> messages_;
-  std::vector<std::shared_ptr<Attribute>> attribute_defs_;
-
-  void parse();
-  void saveMsg(std::unique_ptr<Message> & msg_ptr);
+  std::shared_ptr<BusNodeComment> comment_;
 };
 
 }  // namespace DbcLoader
 }  // namespace CAN
 }  // namespace AS
 
-#endif
+#endif  // BUS_NODE_HPP_
