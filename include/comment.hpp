@@ -32,40 +32,51 @@ namespace CAN
 namespace DbcLoader
 {
 
+class Comment
+{
+public:
+  const std::string getComment();
+
+protected:
+  std::string comment_;
+};
+
 class BusNodeComment
-  : public DbcObj
+  : public Comment, public DbcObj
 {
 public:
   BusNodeComment(std::string && dbc_text);
   BusNodeComment(
-    std::string && bus_node_name,
+    std::string && node_name,
     std::string && comment);
 
-  const std::string node_name;
-  const std::string comment;
+  const std::string getNodeName();
 
 private:
   void generateText() override;
   void parse() override;
+
+  std::string node_name_;
 };
 
 class MessageComment
-  : public DbcObj
+  : public Comment, public DbcObj
 {
 public:
   MessageComment(std::string && dbc_text);
   MessageComment(unsigned int msg_id, std::string && comment);
 
-  const unsigned int msg_id;
-  const std::string comment;
+  const unsigned int getMsgId();
 
 private:
   void generateText() override;
   void parse() override;
+
+  unsigned int msg_id_;
 };
 
 class SignalComment
-  : public DbcObj
+  : public Comment, public DbcObj
 {
 public:
   SignalComment(std::string && dbc_text);
@@ -74,13 +85,15 @@ public:
     std::string && signal_name,
     std::string && comment);
 
-  const unsigned int msg_id;
-  const std::string signal_name;
-  const std::string comment;
+  const unsigned int getMsgId();
+  const std::string getSignalName();
 
 private:
   void generateText() override;
   void parse() override;
+
+  unsigned int msg_id_;
+  std::string signal_name_;
 };
 
 }  // namespace DbcLoader

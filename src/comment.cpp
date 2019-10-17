@@ -20,6 +20,7 @@
 
 #include "comment.hpp"
 
+#include <sstream>
 #include <string>
 
 namespace AS
@@ -29,58 +30,96 @@ namespace CAN
 namespace DbcLoader
 {
 
+const std::string Comment::getComment()
+{
+  return comment_;
+}
+
 BusNodeComment::BusNodeComment(std::string && dbc_text)
 {
-  dbc_text_ = std::move(dbc_text);
+  dbc_text_ = dbc_text;
   parse();
 }
 
-BusNodeComment::BusNodeComment(std::string && bus_node_name, std::string && comment)
-  : node_name(bus_node_name),
-    comment(comment)
+BusNodeComment::BusNodeComment(std::string && node_name, std::string && comment)
+  : node_name_(node_name)
 {
+  comment_ = comment;
   generateText();
+}
+
+const std::string BusNodeComment::getNodeName()
+{
+  return node_name_;
 }
 
 void BusNodeComment::generateText()
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::ostringstream output;
+
+  output << "CM_ BU_ " << node_name_ << " \"";
+  output << comment_ << "\";" << std::endl;
+
+  dbc_text_ = output.str();
 }
 
 void BusNodeComment::parse()
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::istringstream input(dbc_text_);
+
+  // Ignore the preamble and comment type
+  input.ignore(8);
+  input >> node_name_;
+  input >> comment_;
+
+  // Remove surrounding parentheses and ending semicolon
+  comment_ = comment_.substr(1, comment_.length() - 3);
 }
 
 MessageComment::MessageComment(std::string && dbc_text)
-  : msg_id(0)
 {
-  dbc_text_ = std::move(dbc_text);
+  dbc_text_ = dbc_text;
   parse();
 }
 
 MessageComment::MessageComment(unsigned int msg_id, std::string && comment)
-  : msg_id(msg_id),
-    comment(comment)
+  : msg_id_(msg_id)
 {
+  comment_ = comment;
   generateText();
+}
+
+const unsigned int MessageComment::getMsgId()
+{
+  return msg_id_;
 }
 
 void MessageComment::generateText()
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::ostringstream output;
+
+  output << "CM_ BO_ " << msg_id_ << " \"";
+  output << comment_ << "\";" << std::endl;
+
+  dbc_text_ = output.str();
 }
 
 void MessageComment::parse()
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::istringstream input(dbc_text_);
+
+  // Ignore the preamble and comment type
+  input.ignore(8);
+  input >> msg_id_;
+  input >> comment_;
+
+  // Remove surrounding parentheses and ending semicolon
+  comment_ = comment_.substr(1, comment_.length() - 3);
 }
 
 SignalComment::SignalComment(std::string && dbc_text)
-  : msg_id(0),
-    signal_name("")
 {
-  dbc_text_ = std::move(dbc_text);
+  dbc_text_ = dbc_text;
   parse();
 }
 
@@ -88,21 +127,47 @@ SignalComment::SignalComment(
   unsigned int msg_id,
   std::string && signal_name,
   std::string && comment)
-  : msg_id(msg_id),
-    signal_name(signal_name),
-    comment(comment)
+  : msg_id_(msg_id),
+    signal_name_(signal_name)
 {
+  comment_ = comment;
   generateText();
+}
+
+const unsigned int SignalComment::getMsgId()
+{
+  return msg_id_;
+}
+
+const std::string SignalComment::getSignalName()
+{
+  return signal_name_;
 }
 
 void SignalComment::generateText()
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::ostringstream output;
+
+  output << "CM_ SG_ " << msg_id_ << " ";
+  output << signal_name_ << " \"";
+  output << comment_ << "\";" << std::endl;
+
+  dbc_text_ = output.str();
 }
 
 void SignalComment::parse()
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::istringstream input;
+
+  // Ignore the preamble and comment type
+  input.ignore(8);
+
+  input >> msg_id_;
+  input >> signal_name_;
+  input >> comment_;
+
+  // Remove surrounding parentheses and ending semicolon
+  comment_ = comment_.substr(1, comment_.length() - 3);
 }
 
 }  // namespace DbcLoader
