@@ -45,6 +45,7 @@ public:
 
   friend class Database;
   friend class Message;
+  friend class Signal;
 
 private:
   std::string name_;

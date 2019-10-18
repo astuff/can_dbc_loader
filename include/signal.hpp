@@ -44,8 +44,8 @@ public:
   Signal(std::string && dbc_text);
   Signal(
     std::string && name,
-    bool is_multiplexed,
-    std::string && multiplexer_identifier,
+    bool is_multiplex_def,
+    std::shared_ptr<unsigned int> multiplex_id,
     unsigned char start_bit,
     unsigned char length,
     Order endianness,
@@ -60,8 +60,8 @@ public:
       std::map<int, std::string>());
 
   const std::string getName();
-  const bool isMultiplexed();
-  const std::string getMultiplexerIdentifier();
+  const bool isMultiplexDef();
+  const std::shared_ptr<unsigned int> getMultiplexId();
   const unsigned char getStartBit();
   const unsigned char getLength();
   const Order getEndianness();
@@ -80,8 +80,8 @@ public:
 
 private:
   std::string name_;
-  bool is_multiplexed_;
-  std::string multiplexer_identifier_;
+  bool is_multiplex_def_;
+  std::shared_ptr<unsigned int> multiplex_id_;
   unsigned char start_bit_;
   unsigned char length_;
   Order endianness_;

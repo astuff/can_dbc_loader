@@ -107,7 +107,7 @@ void Database::parse()
   std::vector<MessageComment> message_comments;
   std::vector<SignalComment> signal_comments;
 
-  while (getline(file_reader, line)) {
+  while (std::getline(file_reader, line)) {
     if (!line.empty()) {
       auto preamble = line.substr(0, 4).c_str();
 
@@ -149,7 +149,7 @@ void Database::parse()
 
         // Comments can only be added to their associated
         // database objects after the rest of the DBC has been parsed.
-        // This is why they are stored in separate vectors.
+        // This is why they are stored in separate vectors here.
         auto desc_type = line.substr(4, 4).c_str();
 
         if (desc_type == PREAMBLES[2]) {  // BUS_NODE COMMENT
