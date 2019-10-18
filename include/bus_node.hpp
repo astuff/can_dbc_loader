@@ -40,11 +40,14 @@ class BusNode
 public:
   BusNode(std::string && node_name);
 
+  const std::string getName();
   const std::shared_ptr<BusNodeComment> getComment();
 
-  const std::string name;
+  friend class Database;
+  friend class Message;
 
 private:
+  std::string name_;
   std::shared_ptr<BusNodeComment> comment_;
 };
 

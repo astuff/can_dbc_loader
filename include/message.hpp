@@ -28,6 +28,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace AS
@@ -54,7 +55,7 @@ public:
   const unsigned char getDlc();
   const unsigned char getLength();
   const BusNode getTransmittingNode();
-  const std::vector<Signal> getSignals();
+  const std::unordered_map<std::string, Signal> getSignals();
   const std::shared_ptr<MessageComment> getComment();
 
   const unsigned char dlcToLength(const unsigned char & dlc);
@@ -66,7 +67,7 @@ private:
   std::string name_;
   unsigned char dlc_;
   BusNode transmitting_node_;
-  std::vector<Signal> signals_;
+  std::unordered_map<std::string, Signal> signals_;
   std::shared_ptr<MessageComment> comment_;
   
   void generateText() override;

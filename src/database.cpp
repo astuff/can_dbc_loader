@@ -120,17 +120,13 @@ void Database::parse()
         bus_config_ = line.substr(5, line.length() - 5);
         bus_config_found = true;
       } else if (!bus_nodes_found && preamble == PREAMBLES[2]) {  // BUS_NODES
+        std::string node;
+
         // Get everything after 'BU_: ' and split by spaces
         std::istringstream node_list(line.substr(5, line.length() - 5));
-        std::vector<std::string> nodes(
-          std::istream_iterator<std::string>{node_list},
-          std::istream_iterator<std::string>());
 
-        // Create new BusNodes and remove from 
-        auto node_len = nodes.size();
-        for (auto i = 0; i < node_len; ++i) {
-          bus_nodes_.emplace_back(std::move(nodes.back()));
-          nodes.pop_back();
+        while (node_list >> node) {
+          bus_nodes_.emplace_back(std::move(node));
         }
 
         bus_nodes_found = true;
@@ -143,31 +139,25 @@ void Database::parse()
         if (current_msg) {
           // Signal found and current message is active
           // Add signal to existing message
-          current_msg->signals_.emplace_back(std::move(line));
+          Signal temp_sig(std::move(line));
+          current_msg->signals_.emplace(std::make_pair(temp_sig.getName(), std::move(temp_sig)));
+        } else {
+          throw DbcParseException();
         }
       } else if (preamble == PREAMBLES[5]) {  // COMMENT
         saveMsg(current_msg);
 
-        // Descriptions can only be added to their associated
+        // Comments can only be added to their associated
         // database objects after the rest of the DBC has been parsed.
         // This is why they are stored in separate vectors.
         auto desc_type = line.substr(4, 4).c_str();
-        auto desc_begin = line.find('"', 8);
 
-        if (desc_begin != std::string::npos)
-        {
-          // Everything between the parentheses
-          auto desc = line.substr(desc_begin, line.length() - desc_begin - 1);
-
-          if (desc_type == PREAMBLES[2]) {  // BUS_NODE COMMENT
-            bus_node_comments.emplace_back(std::move(line));
-          } else if (desc_type == PREAMBLES[3]) {  // MESSAGE COMMENT
-            message_comments.emplace_back(std::move(line));
-          } else if (desc_type == PREAMBLES[4]) {  // SIGNAL COMMENT
-            signal_comments.emplace_back(std::move(line));
-          }
-        } else {
-          throw DbcParseException();
+        if (desc_type == PREAMBLES[2]) {  // BUS_NODE COMMENT
+          bus_node_comments.emplace_back(std::move(line));
+        } else if (desc_type == PREAMBLES[3]) {  // MESSAGE COMMENT
+          message_comments.emplace_back(std::move(line));
+        } else if (desc_type == PREAMBLES[4]) {  // SIGNAL COMMENT
+          signal_comments.emplace_back(std::move(line));
         }
       } else if (preamble == PREAMBLES[6]) {  // SIGNAL_VAL_DEF
         saveMsg(current_msg);
@@ -182,7 +172,36 @@ void Database::parse()
   // Just in case we still have a message open
   saveMsg(current_msg);
   
-  // TODO(jwhitleyastuff): Apply comments to DB objects
+  // Add bus node comments
+  for (auto & bus_node_comment : bus_node_comments) {
+    for (auto & bus_node : bus_nodes_) {
+      if (bus_node.name_ == bus_node_comment.getNodeName()) {
+        bus_node.comment_ = std::shared_ptr<BusNodeComment>(new BusNodeComment(std::move(bus_node_comment)));
+      }
+    }
+  }
+
+  // Add message comments
+  for (auto & message_comment : message_comments) {
+    auto msg_itr = messages_.find(message_comment.getMsgId());
+
+    if (msg_itr != messages_.end()) {
+      msg_itr->second.comment_ = std::shared_ptr<MessageComment>(new MessageComment(std::move(message_comment)));
+    }
+  }
+
+  // Add signal comments
+  for (auto & signal_comment : signal_comments) {
+    auto msg_itr = messages_.find(signal_comment.getMsgId());
+
+    if (msg_itr != messages_.end()) {
+      auto signal_itr = msg_itr->second.signals_.find(signal_comment.getSignalName());
+
+      if (signal_itr != msg_itr->second.signals_.end()) {
+        signal_itr->second.comment_ = std::shared_ptr<SignalComment>(new SignalComment(std::move(signal_comment)));
+      }
+    }
+  }
 
   // TODO(jwhitleyastuff): Apply attributes to DB objects
 

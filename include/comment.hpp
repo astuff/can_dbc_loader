@@ -52,6 +52,8 @@ public:
 
   const std::string getNodeName();
 
+  friend class BusNode;
+
 private:
   void generateText() override;
   void parse() override;
@@ -67,6 +69,8 @@ public:
   MessageComment(unsigned int msg_id, std::string && comment);
 
   const unsigned int getMsgId();
+
+  friend class Message;
 
 private:
   void generateText() override;
@@ -87,6 +91,8 @@ public:
 
   const unsigned int getMsgId();
   const std::string getSignalName();
+
+  friend class Signal;
 
 private:
   void generateText() override;

@@ -30,9 +30,14 @@ namespace DbcLoader
 {
 
 BusNode::BusNode(std::string && node_name)
-  : name(node_name),
+  : name_(node_name),
     comment_(nullptr)
 {
+}
+
+const std::string BusNode::getName()
+{
+  return name_;
 }
 
 const std::shared_ptr<BusNodeComment> BusNode::getComment()

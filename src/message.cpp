@@ -21,6 +21,7 @@
 #include "message.hpp"
 
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -47,9 +48,12 @@ Message::Message(
   : id_(id),
     name_(name),
     dlc_(dlc),
-    transmitting_node_(transmitting_node),
-    signals_(signals)
+    transmitting_node_(transmitting_node)
 {
+  for (auto & signal : signals) {
+    signals_.emplace(std::make_pair(signal.getName(), std::move(signal)));
+  }
+
   generateText();
 }
 
@@ -78,7 +82,7 @@ const BusNode Message::getTransmittingNode()
   return transmitting_node_;
 }
 
-const std::vector<Signal> Message::getSignals()
+const std::unordered_map<std::string, Signal> Message::getSignals()
 {
   return signals_;
 }
@@ -90,12 +94,28 @@ const std::shared_ptr<MessageComment> Message::getComment()
 
 void Message::generateText()
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::ostringstream output;
+
+  output << "BO_ " << id_ << " ";
+  output << name_ << ": ";
+  output << dlc_ << " ";
+  output << transmitting_node_.name_;
+
+  dbc_text_ = output.str();
 }
 
 void Message::parse()
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::istringstream input(dbc_text_);
+
+  input.ignore(4);
+  input >> id_;
+  input >> name_;
+  input >> dlc_;
+  input >> transmitting_node_.name_;
+
+  // Remove colon after name
+  name_ = name_.substr(0, name_.length() - 1);
 }
 
 const unsigned char Message::dlcToLength(const unsigned char & dlc)
