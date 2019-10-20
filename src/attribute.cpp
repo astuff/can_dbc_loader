@@ -62,7 +62,7 @@ EnumAttribute::EnumAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
   std::vector<std::string> && enum_values)
-    : enum_values(enum_values), default_value_(nullptr)
+    : enum_values_(enum_values), default_value_(nullptr)
 {
   name_ = std::move(name);
   dbc_obj_type_ = std::move(dbc_obj_type);
@@ -104,7 +104,6 @@ void EnumAttribute::parseDefaultValue(std::string && dbc_text)
   std::string temp_string;
 
   input.ignore(12);
-
   input >> temp_string;
 
   // Sometimes 2 spaces between preamble and def
@@ -139,11 +138,49 @@ void EnumAttribute::generateText()
 
 void EnumAttribute::parse()
 {
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::istringstream input(dbc_text_);
+  std::string temp_string;
+  std::string enum_val;
+
+  input.ignore(12);
+  input >> temp_string;
+
+  // Sometimes two spaces between preamble and def
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  // Attribute name
+  input >> name_;
+  // Attribute type
+  input >> temp_string;
+
+  // Sometimes two spaces between type and values
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  auto first_comma = temp_string.find(",");
+
+  if (first_comma != std::string::npos) {
+    while (std::getline(std::istringstream(temp_string), enum_val, ',')) {
+      enum_val = enum_val.substr(1, enum_val.length() - 2);
+
+      // Remove ending semicolon
+      if (enum_val[enum_val.length() - 1] == ';') {
+        enum_val = enum_val.substr(0, enum_val.length() - 1);
+      }
+
+      enum_values_.emplace_back(std::move(enum_val));
+    }
+  } else {
+    // Remove parentheses and ending semicolon
+    temp_string = temp_string.substr(1, temp_string.length() - 3);
+    enum_values_.emplace_back(std::move(temp_string));
+  }
 }
 
 FloatAttribute::FloatAttribute(std::string && dbc_text)
-  : min(0), max(0)
 {
   dbc_text_ = dbc_text;
   parse();
@@ -153,7 +190,7 @@ FloatAttribute::FloatAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
   float min, float max)
-    : min(min), max(max), default_value_(nullptr)
+    : min_(min), max_(max), default_value_(nullptr)
 {
   name_ = std::move(name);
   dbc_obj_type_ = std::move(dbc_obj_type);
@@ -162,7 +199,7 @@ FloatAttribute::FloatAttribute(
 }
 
 FloatAttribute::FloatAttribute(const FloatAttribute & other)
-  : min(other.min), max(other.max)
+  : min_(other.min_), max_(other.max_)
 {
   dbc_text_ = other.dbc_text_;
   default_value_dbc_text_ = other.default_value_dbc_text_;
@@ -231,11 +268,39 @@ void FloatAttribute::generateText()
 
 void FloatAttribute::parse()
 {
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::istringstream input(dbc_text_);
+  std::string temp_string;
+  std::string enum_val;
+
+  input.ignore(12);
+  input >> temp_string;
+
+  // Sometimes two spaces between preamble and def
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  // Attribute name
+  input >> name_;
+  // Attribute type
+  input >> temp_string;
+
+  // Sometimes two spaces between type and values
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  input >> temp_string;
+  min_ = std::stof(temp_string);
+  input >> temp_string;
+
+  // Remove ending semicolon
+  temp_string = temp_string.substr(0, temp_string.length() - 1);
+
+  max_ = std::stof(temp_string);
 }
 
 IntAttribute::IntAttribute(std::string && dbc_text)
-  : min(0), max(0)
 {
   dbc_text_ = dbc_text;
   parse();
@@ -245,7 +310,7 @@ IntAttribute::IntAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
   int min, int max)
-    : min(min), max(max), default_value_(nullptr)
+    : min_(min), max_(max), default_value_(nullptr)
 {
   name_ = std::move(name);
   dbc_obj_type_ = std::move(dbc_obj_type);
@@ -254,7 +319,7 @@ IntAttribute::IntAttribute(
 }
 
 IntAttribute::IntAttribute(const IntAttribute & other)
-  : min(other.min), max(other.max)
+  : min_(other.min_), max_(other.max_)
 {
   dbc_text_ = other.dbc_text_;
   default_value_dbc_text_ = other.default_value_dbc_text_;
@@ -323,7 +388,36 @@ void IntAttribute::generateText()
 
 void IntAttribute::parse()
 {
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::istringstream input(dbc_text_);
+  std::string temp_string;
+  std::string enum_val;
+
+  input.ignore(12);
+  input >> temp_string;
+
+  // Sometimes two spaces between preamble and def
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  // Attribute name
+  input >> name_;
+  // Attribute type
+  input >> temp_string;
+
+  // Sometimes two spaces between type and values
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  input >> temp_string;
+  min_ = std::stoi(temp_string);
+  input >> temp_string;
+
+  // Remove ending semicolon
+  temp_string = temp_string.substr(0, temp_string.length() - 1);
+
+  max_ = std::stoi(temp_string);
 }
 
 StringAttribute::StringAttribute(std::string && dbc_text)
@@ -412,7 +506,22 @@ void StringAttribute::generateText()
 
 void StringAttribute::parse()
 {
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::istringstream input(dbc_text_);
+  std::string temp_string;
+  std::string enum_val;
+
+  input.ignore(12);
+  input >> temp_string;
+
+  // Sometimes two spaces between preamble and def
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  // Attribute name
+  input >> name_;
+  // Attribute type
+  input >> temp_string;
 }
 
 }  // namespace DbcLoader

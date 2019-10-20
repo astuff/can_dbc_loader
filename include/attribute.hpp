@@ -75,10 +75,9 @@ public:
   EnumAttribute & operator=(EnumAttribute && other) = default;
 
   const std::string * getDefaultValue();
+  std::vector<std::string> getEnumValues();
   void parseDefaultValue(std::string && dbc_text) override;
   void setDefaultValue(std::string && default_value);
-
-  const std::vector<std::string> enum_values;
 
 private:
   void generateDefaultValueText() override;
@@ -90,6 +89,7 @@ private:
     return new EnumAttribute(*this);
   }
 
+  std::vector<std::string> enum_values_;
   std::unique_ptr<std::string> default_value_;
 };
 
@@ -109,10 +109,10 @@ public:
   FloatAttribute & operator=(FloatAttribute && other) = default;
 
   const float * getDefaultValue();
+  float getMin();
+  float getMax();
   void parseDefaultValue(std::string && dbc_text) override;
   void setDefaultValue(float default_value);
-
-  const float min, max;
 
 private:
   void generateDefaultValueText() override;
@@ -124,6 +124,7 @@ private:
     return new FloatAttribute(*this);
   }
 
+  float min_, max_;
   std::unique_ptr<float> default_value_;
 };
 
@@ -143,10 +144,10 @@ public:
   IntAttribute & operator=(IntAttribute && other) = default;
 
   const int * getDefaultValue();
+  int getMin();
+  int getMax();
   void parseDefaultValue(std::string && dbc_text) override;
   void setDefaultValue(int default_value);
-
-  const int min, max;
 
 private:
   void generateDefaultValueText() override;
@@ -158,6 +159,7 @@ private:
     return new IntAttribute(*this);
   }
 
+  int min_, max_;
   std::unique_ptr<int> default_value_;
 };
 
