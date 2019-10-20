@@ -59,21 +59,21 @@ public:
     std::map<int, std::string> && value_definitions =
       std::map<int, std::string>());
 
-  const std::string getName();
-  const bool isMultiplexDef();
-  const std::shared_ptr<unsigned int> getMultiplexId();
-  const unsigned char getStartBit();
-  const unsigned char getLength();
-  const Order getEndianness();
-  const bool isSigned();
-  const float getFactor();
-  const float getOffset();
-  const float getMinVal();
-  const float getMaxVal();
-  const std::string getUnit();
-  const std::vector<BusNode> getReceivingNodes();
-  const std::map<int, std::string> getValueDefinitions();
-  const std::shared_ptr<SignalComment> getComment();
+  std::string getName();
+  bool isMultiplexDef();
+  std::shared_ptr<unsigned int> getMultiplexId();
+  unsigned char getStartBit();
+  unsigned char getLength();
+  Order getEndianness();
+  bool isSigned();
+  float getFactor();
+  float getOffset();
+  float getMinVal();
+  float getMaxVal();
+  std::string getUnit();
+  std::vector<BusNode> getReceivingNodes();
+  std::map<int, std::string> getValueDefinitions();
+  std::shared_ptr<SignalComment> getComment();
 
   friend class Message;
   friend class Database;

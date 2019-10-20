@@ -28,6 +28,7 @@
 #include "message.hpp"
 
 #include <fstream>
+#include <istream>
 #include <map>
 #include <memory>
 #include <string>
@@ -45,6 +46,7 @@ class Database
 {
 public:
   Database(const std::string & dbc_path);
+  Database(std::istream & mem_stream);
   Database(
     std::string && version,
     std::string && bus_config,
@@ -53,21 +55,20 @@ public:
     std::vector<std::shared_ptr<Attribute>> && attribute_definitions);
 
   void generateDbcFile(const std::string & dbc_path);
-  const std::string getVersion();
-  const std::string getBusConfig();
-  const std::vector<BusNode> getBusNodes();
-  const std::unordered_map<unsigned int, Message> getMessages();
-  const std::vector<std::shared_ptr<Attribute>> getAttributeDefinitions();
+  std::string getVersion();
+  std::string getBusConfig();
+  std::vector<BusNode> getBusNodes();
+  std::unordered_map<unsigned int, Message> getMessages();
+  std::vector<std::shared_ptr<Attribute>> getAttributeDefinitions();
 
 private:
-  std::ifstream file_reader;
   std::string version_;
   std::string bus_config_;
   std::vector<BusNode> bus_nodes_;
   std::unordered_map<unsigned int, Message> messages_;
   std::vector<std::shared_ptr<Attribute>> attribute_defs_;
 
-  void parse();
+  void parse(std::istream & reader);
   void saveMsg(std::unique_ptr<Message> & msg_ptr);
 };
 

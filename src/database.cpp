@@ -23,7 +23,6 @@
 #include <algorithm>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -39,17 +38,22 @@ namespace DbcLoader
 // Begin Database
 
 Database::Database(const std::string & dbc_path)
-  : file_reader(dbc_path)
 {
+  std::ifstream file_reader;
   file_reader.open(dbc_path);
 
   if (file_reader.is_open()) {
-    parse();
+    parse(file_reader);
   } else {
     throw DbcReadException();
   }
 
   file_reader.close();
+}
+
+Database::Database(std::istream & mem_stream)
+{
+  parse(mem_stream);
 }
 
 Database::Database(
@@ -71,32 +75,32 @@ void Database::generateDbcFile(const std::string & dbc_path)
   // TODO(jwhitleyastuff): Do the thing!
 }
 
-const std::string Database::getVersion()
+std::string Database::getVersion()
 {
   return version_;
 }
 
-const std::string Database::getBusConfig()
+std::string Database::getBusConfig()
 {
   return bus_config_;
 }
 
-const std::vector<BusNode> Database::getBusNodes()
+std::vector<BusNode> Database::getBusNodes()
 {
   return std::vector<BusNode>(bus_nodes_);
 }
 
-const std::unordered_map<unsigned int, Message> Database::getMessages()
+std::unordered_map<unsigned int, Message> Database::getMessages()
 {
   return std::unordered_map<unsigned int, Message>(messages_);
 }
 
-const std::vector<std::shared_ptr<Attribute>> Database::getAttributeDefinitions()
+std::vector<std::shared_ptr<Attribute>> Database::getAttributeDefinitions()
 {
   return std::vector<std::shared_ptr<Attribute>>(attribute_defs_);
 }
 
-void Database::parse()
+void Database::parse(std::istream & reader)
 {
   std::string line;
   bool version_found = false;
@@ -107,25 +111,32 @@ void Database::parse()
   std::vector<MessageComment> message_comments;
   std::vector<SignalComment> signal_comments;
 
-  while (std::getline(file_reader, line)) {
+  while (std::getline(reader, line)) {
     if (!line.empty()) {
-      auto preamble = line.substr(0, 4).c_str();
+      std::istringstream iss_line(line);
+      std::string preamble;
+
+      iss_line >> preamble;
+
+      // Some lines begin with a space
+      if (preamble.empty()) {
+        iss_line >> preamble;
+      }
 
       if (!version_found && preamble == PREAMBLES[0]) {  // VERSION
-        // Get everything after 'VERSION "', excluding last '"'
-        version_ = line.substr(9, line.length() - 10);
+        iss_line >> version_;
+
+        // Remove parentheses
+        version_ = version_.substr(1, version_.length() - 2);
         version_found = true;
-      } else if (!bus_config_found && preamble == PREAMBLES[1]) {  // BUS_CONFIG
-        // Get everything after 'BS_: '
-        bus_config_ = line.substr(5, line.length() - 5);
+      } else if (!bus_config_found && preamble == PREAMBLES[1]) {  // BUS CONFIG
+        iss_line >> bus_config_;
         bus_config_found = true;
-      } else if (!bus_nodes_found && preamble == PREAMBLES[2]) {  // BUS_NODES
+      } else if (!bus_nodes_found && preamble == PREAMBLES[2]) {  // BUS NODES
         std::string node;
 
         // Get everything after 'BU_: ' and split by spaces
-        std::istringstream node_list(line.substr(5, line.length() - 5));
-
-        while (node_list >> node) {
+        while (iss_line >> node) {
           bus_nodes_.emplace_back(std::move(node));
         }
 
@@ -150,20 +161,23 @@ void Database::parse()
         // Comments can only be added to their associated
         // database objects after the rest of the DBC has been parsed.
         // This is why they are stored in separate vectors here.
-        auto desc_type = line.substr(4, 4).c_str();
+        std::string desc_type;
+        iss_line >> desc_type;
 
-        if (desc_type == PREAMBLES[2]) {  // BUS_NODE COMMENT
+        if (desc_type == "BU_") {  // BUS NODE COMMENT
           bus_node_comments.emplace_back(std::move(line));
         } else if (desc_type == PREAMBLES[3]) {  // MESSAGE COMMENT
           message_comments.emplace_back(std::move(line));
         } else if (desc_type == PREAMBLES[4]) {  // SIGNAL COMMENT
           signal_comments.emplace_back(std::move(line));
         }
-      } else if (preamble == PREAMBLES[6]) {  // SIGNAL_VAL_DEF
+      } else if (preamble == PREAMBLES[6]) {  // SIGNAL VALUE LIST
         saveMsg(current_msg);
-      } else if (preamble == PREAMBLES[7]) {  // ATTRIBUTE_DEF / ATTRIBUTE_DFLT_VAL
+      } else if (preamble == PREAMBLES[7]) {  // ATTRIBUTE DEFINITION
         saveMsg(current_msg);
-      } else if (preamble == PREAMBLES[8]) {  // ATTRIBUTE_VAL
+      } else if (preamble == PREAMBLES[8]) {  // ATTRIBUTE DEFAULT VALUE
+        saveMsg(current_msg);
+      } else if (preamble == PREAMBLES[9]) {  // ATTRIBUTE VALUE
         saveMsg(current_msg);
       }
     }

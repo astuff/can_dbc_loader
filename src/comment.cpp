@@ -30,7 +30,7 @@ namespace CAN
 namespace DbcLoader
 {
 
-const std::string Comment::getComment()
+std::string Comment::getComment()
 {
   return comment_;
 }
@@ -48,7 +48,7 @@ BusNodeComment::BusNodeComment(std::string && node_name, std::string && comment)
   generateText();
 }
 
-const std::string BusNodeComment::getNodeName()
+std::string BusNodeComment::getNodeName()
 {
   return node_name_;
 }
@@ -89,7 +89,7 @@ MessageComment::MessageComment(unsigned int msg_id, std::string && comment)
   generateText();
 }
 
-const unsigned int MessageComment::getMsgId()
+unsigned int MessageComment::getMsgId()
 {
   return msg_id_;
 }
@@ -134,12 +134,12 @@ SignalComment::SignalComment(
   generateText();
 }
 
-const unsigned int SignalComment::getMsgId()
+unsigned int SignalComment::getMsgId()
 {
   return msg_id_;
 }
 
-const std::string SignalComment::getSignalName()
+std::string SignalComment::getSignalName()
 {
   return signal_name_;
 }

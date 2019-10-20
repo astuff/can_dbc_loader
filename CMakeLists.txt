@@ -5,6 +5,8 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
+set(BUILD_EXAMPLES ON)
+
 include_directories(include)
 
 add_library(
@@ -16,6 +18,18 @@ add_library(
   src/message.cpp
   src/signal.cpp
 )
+
+if(BUILD_EXAMPLES)
+  add_executable(
+    parse_types
+    examples/parse_types.cpp
+  )
+
+  target_link_libraries(
+    parse_types
+    can_dbc_loader
+  )
+endif()
 
 install(
   TARGETS can_dbc_loader

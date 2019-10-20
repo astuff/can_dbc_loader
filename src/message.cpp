@@ -57,37 +57,37 @@ Message::Message(
   generateText();
 }
 
-const unsigned int Message::getId()
+unsigned int Message::getId()
 {
   return id_;
 }
 
-const std::string Message::getName()
+std::string Message::getName()
 {
   return name_;
 }
 
-const unsigned char Message::getDlc()
+unsigned char Message::getDlc()
 {
   return dlc_;
 }
 
-const unsigned char Message::getLength()
+unsigned char Message::getLength()
 {
   return dlcToLength(dlc_);
 }
 
-const BusNode Message::getTransmittingNode()
+BusNode Message::getTransmittingNode()
 {
   return transmitting_node_;
 }
 
-const std::unordered_map<std::string, Signal> Message::getSignals()
+std::unordered_map<std::string, Signal> Message::getSignals()
 {
   return signals_;
 }
 
-const std::shared_ptr<MessageComment> Message::getComment()
+std::shared_ptr<MessageComment> Message::getComment()
 {
   return std::shared_ptr<MessageComment>(comment_);
 }
@@ -118,7 +118,7 @@ void Message::parse()
   name_ = name_.substr(0, name_.length() - 1);
 }
 
-const unsigned char Message::dlcToLength(const unsigned char & dlc)
+unsigned char Message::dlcToLength(const unsigned char & dlc)
 {
   return DLC_LENGTH[dlc];
 }

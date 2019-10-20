@@ -35,12 +35,12 @@ BusNode::BusNode(std::string && node_name)
 {
 }
 
-const std::string BusNode::getName()
+std::string BusNode::getName()
 {
   return name_;
 }
 
-const std::shared_ptr<BusNodeComment> BusNode::getComment()
+std::shared_ptr<BusNodeComment> BusNode::getComment()
 {
   return std::shared_ptr<BusNodeComment>(comment_);
 }

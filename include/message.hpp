@@ -50,15 +50,15 @@ public:
     BusNode && transmitting_node,
     std::vector<Signal> && signals);
 
-  const unsigned int getId();
-  const std::string getName();
-  const unsigned char getDlc();
-  const unsigned char getLength();
-  const BusNode getTransmittingNode();
-  const std::unordered_map<std::string, Signal> getSignals();
-  const std::shared_ptr<MessageComment> getComment();
+  unsigned int getId();
+  std::string getName();
+  unsigned char getDlc();
+  unsigned char getLength();
+  BusNode getTransmittingNode();
+  std::unordered_map<std::string, Signal> getSignals();
+  std::shared_ptr<MessageComment> getComment();
 
-  const unsigned char dlcToLength(const unsigned char & dlc);
+  unsigned char dlcToLength(const unsigned char & dlc);
 
   friend class Database;
 

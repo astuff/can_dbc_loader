@@ -38,15 +38,23 @@ namespace DbcLoader
 class Attribute
 {
 public:
+  Attribute();
   Attribute(
     std::string && name,
     DbcObjType && dbc_obj_type,
     AttributeType && attr_type = AttributeType::STRING);
   virtual ~Attribute() {};
 
-  const std::string name;
+  virtual void parseDefaultValue(std::string && dbc_text) = 0;
+  std::string getDefaultValueDbcText();
+  std::string getName();
+
   const DbcObjType dbc_obj_type;
   const AttributeType attr_type;
+
+protected:
+  std::string default_value_dbc_text_;
+  std::string name_;
 };
 
 class EnumAttribute
@@ -60,7 +68,9 @@ public:
     std::vector<std::string> && enum_values);
   ~EnumAttribute() = default;
 
-  const std::unique_ptr<std::string> getValue();
+  void parseDefaultValue(std::string && dbc_text) override;
+  std::unique_ptr<std::string> getValue();
+
   const std::vector<std::string> enum_values;
 
 private:
@@ -82,7 +92,9 @@ public:
     float min, float max);
   ~FloatAttribute() = default;
 
-  const std::unique_ptr<float> getValue();
+  void parseDefaultValue(std::string && dbc_text) override;
+  std::unique_ptr<float> getValue();
+
   const float min, max;
 
 private:
@@ -97,13 +109,16 @@ class IntAttribute
   : public Attribute, public DbcObj
 {
 public:
+  IntAttribute(std::string && dbc_text);
   IntAttribute(
     std::string && name,
     DbcObjType && dbc_obj_type,
     int min, int max);
   ~IntAttribute() = default;
 
-  const std::unique_ptr<int> getValue();
+  void parseDefaultValue(std::string && dbc_text) override;
+  std::unique_ptr<int> getValue();
+
   const int min, max;
 
 private:
@@ -118,12 +133,14 @@ class StringAttribute
   : public Attribute, public DbcObj
 {
 public:
+  StringAttribute(std::string && dbc_text);
   StringAttribute(
     std::string && name,
     DbcObjType && dbc_obj_type);
   ~StringAttribute() = default;
 
-  const std::unique_ptr<std::string> getValue();
+  void parseDefaultValue(std::string && dbc_text) override;
+  std::unique_ptr<std::string> getValue();
 
 private:
   void generateText() override;

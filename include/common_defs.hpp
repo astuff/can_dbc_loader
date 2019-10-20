@@ -36,17 +36,44 @@ static constexpr std::array<unsigned char, 16> DLC_LENGTH =
 { 0,  1,  2,  3,  4,  5,  6,  7,
   8, 12, 16, 20, 24, 32, 48, 64 };
 
-static constexpr std::array<const char[5], 9> PREAMBLES =
+// Currently unsupported types:
+//   BA_DEF_DEF_REL_
+//   BA_DEF_REL_
+//   BA_DEF_SGTYPE_
+//   BA_REL_
+//   BA_SGTYPE_
+//   BO_TX_BU_
+//   BU_BO_REL_
+//   BU_EV_REL_
+//   BU_SG_REL_
+//   CAT_
+//   CAT_DEF_
+//   ENVVAR_DATA_
+//   EV_
+//   EV_DATA_
+//   FILTER
+//   NS_DESC_
+//   SGTYPE_
+//   SGTYPE_VAL_
+//   SG_MUL_VAL_
+//   SIGTYPE_VALTYPE_
+//   SIG_GROUP_
+//   SIG_TYPE_REF_
+//   SIG_VALTYPE_
+//   VAL_TABLE_
+
+static const std::array<std::string, 10> PREAMBLES =
 {
-  "VERS",  // VERSION
-  "BS_:",  // BUS_CONFIG
-  "BU_:",  // BUS_NODES
-  "BO_ ",  // MESSAGE
-  " SG_",  // SIGNAL
-  "CM_ ",  // DESCRIPTION
-  "VAL_",  // SIGNAL_VAL_DEF
-  "BA_D",  // ATTRIBUTE_DEF / ATTRIBUTE_DFLT_VAL
-  "BA_ "   // ATTRIBUTE_VAL
+  "VERSION",      // VERSION
+  "BS_:",         // BUS CONFIG
+  "BU_:",         // BUS NODES
+  "BO_",          // MESSAGE
+  "SG_",          // SIGNAL
+  "CM_",          // COMMENT
+  "VAL_",         // SIGNAL VALUE LIST
+  "BA_DEF_",      // ATTRIBUTE DEFINITION
+  "BA_DEF_DEF_",  // ATTRIBUTE DEFAULT VALUE
+  "BA_"           // ATTRIBUTE VALUE
 };
 
 enum class DbcObjType

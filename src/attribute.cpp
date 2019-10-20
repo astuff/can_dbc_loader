@@ -31,14 +31,36 @@ namespace CAN
 namespace DbcLoader
 {
 
+Attribute::Attribute()
+  : dbc_obj_type(DbcObjType::MESSAGE),
+    attr_type(AttributeType::STRING)
+{
+}
+
 Attribute::Attribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
   AttributeType && attr_type)
-  : name(name),
+  : name_(name),
     dbc_obj_type(dbc_obj_type),
     attr_type(attr_type)
 {
+}
+
+std::string Attribute::getName()
+{
+  return name_;
+}
+
+std::string Attribute::getDefaultValueDbcText()
+{
+  return default_value_dbc_text_;
+}
+
+EnumAttribute::EnumAttribute(std::string && dbc_text)
+{
+  dbc_text_ = dbc_text;
+  parse();
 }
 
 EnumAttribute::EnumAttribute(
@@ -48,9 +70,17 @@ EnumAttribute::EnumAttribute(
   : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::ENUM),
     enum_values(enum_values), value_(nullptr), default_value_(nullptr)
 {
+  generateText();
 }
 
-const std::unique_ptr<std::string> EnumAttribute::getValue()
+void EnumAttribute::parseDefaultValue(std::string && dbc_text)
+{
+  default_value_dbc_text_ = dbc_text;
+
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+std::unique_ptr<std::string> EnumAttribute::getValue()
 {
   if (value_) {
     return std::make_unique<std::string>(*value_);
@@ -61,6 +91,23 @@ const std::unique_ptr<std::string> EnumAttribute::getValue()
   }
 }
 
+void EnumAttribute::generateText()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+void EnumAttribute::parse()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+FloatAttribute::FloatAttribute(std::string && dbc_text)
+  : min(0), max(0)
+{
+  dbc_text_ = dbc_text;
+  parse();
+}
+
 FloatAttribute::FloatAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
@@ -68,9 +115,17 @@ FloatAttribute::FloatAttribute(
   : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::FLOAT),
     min(min), max(max), value_(nullptr), default_value_(nullptr)
 {
+  generateText();
 }
 
-const std::unique_ptr<float> FloatAttribute::getValue()
+void FloatAttribute::parseDefaultValue(std::string && dbc_text)
+{
+  default_value_dbc_text_ = dbc_text;
+
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+std::unique_ptr<float> FloatAttribute::getValue()
 {
   if (value_) {
     return std::make_unique<float>(*value_);
@@ -81,6 +136,23 @@ const std::unique_ptr<float> FloatAttribute::getValue()
   }
 }
 
+void FloatAttribute::generateText()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+void FloatAttribute::parse()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+IntAttribute::IntAttribute(std::string && dbc_text)
+  : min(0), max(0)
+{
+  dbc_text_ = dbc_text;
+  parse();
+}
+
 IntAttribute::IntAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
@@ -88,9 +160,17 @@ IntAttribute::IntAttribute(
   : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::INT),
     min(min), max(max), value_(nullptr), default_value_(nullptr)
 {
+  generateText();
 }
 
-const std::unique_ptr<int> IntAttribute::getValue()
+void IntAttribute::parseDefaultValue(std::string && dbc_text)
+{
+  default_value_dbc_text_ = dbc_text;
+
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+std::unique_ptr<int> IntAttribute::getValue()
 {
   if (value_) {
     return std::make_unique<int>(*value_);
@@ -101,15 +181,39 @@ const std::unique_ptr<int> IntAttribute::getValue()
   }
 }
 
+void IntAttribute::generateText()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+void IntAttribute::parse()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+StringAttribute::StringAttribute(std::string && dbc_text)
+{
+  dbc_text_ = dbc_text;
+  parse();
+}
+
 StringAttribute::StringAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type)
   : Attribute(std::move(name), std::move(dbc_obj_type)),
     value_(nullptr), default_value_(nullptr)
 {
+  generateText();
 }
 
-const std::unique_ptr<std::string> StringAttribute::getValue()
+void StringAttribute::parseDefaultValue(std::string && dbc_text)
+{
+  default_value_dbc_text_ = dbc_text;
+
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+std::unique_ptr<std::string> StringAttribute::getValue()
 {
   if (value_) {
     return std::make_unique<std::string>(*value_);
@@ -118,6 +222,16 @@ const std::unique_ptr<std::string> StringAttribute::getValue()
   } else {
     return nullptr;
   }
+}
+
+void StringAttribute::generateText()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
+}
+
+void StringAttribute::parse()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
 }
 
 }  // namespace DbcLoader

@@ -72,17 +72,17 @@ Signal::Signal(
   generateText();
 }
 
-const std::string Signal::getName()
+std::string Signal::getName()
 {
   return name_;
 }
 
-const bool Signal::isMultiplexDef()
+bool Signal::isMultiplexDef()
 {
   return is_multiplex_def_;
 }
 
-const std::shared_ptr<unsigned int> Signal::getMultiplexId()
+std::shared_ptr<unsigned int> Signal::getMultiplexId()
 {
   if (multiplex_id_) {
     return std::shared_ptr<unsigned int>(multiplex_id_);
@@ -91,62 +91,62 @@ const std::shared_ptr<unsigned int> Signal::getMultiplexId()
   }
 }
 
-const unsigned char Signal::getStartBit()
+unsigned char Signal::getStartBit()
 {
   return start_bit_;
 }
 
-const unsigned char Signal::getLength()
+unsigned char Signal::getLength()
 {
   return length_;
 }
 
-const Order Signal::getEndianness()
+Order Signal::getEndianness()
 {
   return endianness_;
 }
 
-const bool Signal::isSigned()
+bool Signal::isSigned()
 {
   return is_signed_;
 }
 
-const float Signal::getFactor()
+float Signal::getFactor()
 {
   return factor_;
 }
 
-const float Signal::getOffset()
+float Signal::getOffset()
 {
   return offset_;
 }
 
-const float Signal::getMinVal()
+float Signal::getMinVal()
 {
   return min_;
 }
 
-const float Signal::getMaxVal()
+float Signal::getMaxVal()
 {
   return max_;
 }
 
-const std::string Signal::getUnit()
+std::string Signal::getUnit()
 {
   return unit_;
 }
 
-const std::vector<BusNode> Signal::getReceivingNodes()
+std::vector<BusNode> Signal::getReceivingNodes()
 {
   return receiving_nodes_;
 }
 
-const std::map<int, std::string> Signal::getValueDefinitions()
+std::map<int, std::string> Signal::getValueDefinitions()
 {
   return value_defs_;
 }
 
-const std::shared_ptr<SignalComment> Signal::getComment()
+std::shared_ptr<SignalComment> Signal::getComment()
 {
   return std::shared_ptr<SignalComment>(comment_);
 }
@@ -227,7 +227,7 @@ void Signal::parse()
   auto at = temp_string.find("@");
 
   if (bar != std::string::npos && at != std::string::npos) {
-    start_bit_ = static_cast<unsigned int>(std::stoul(temp_string.substr(0, bar)));
+    start_bit_ = static_cast<unsigned char>(std::stoul(temp_string.substr(0, bar)));
     length_ = static_cast<unsigned char>(std::stoul(temp_string.substr(bar + 1, at - bar - 1)));
 
     if (temp_string[at + 1] == '0') {
@@ -284,10 +284,16 @@ void Signal::parse()
     input >> temp_string;
   }
 
-  while (std::getline(input, temp_string, ',')) {
-    if (temp_string != "Vector__XXX") {
-      receiving_nodes_.emplace_back(std::move(temp_string));
+  auto first_comma = temp_string.find(",");
+
+  if (first_comma != std::string::npos) {
+    while (std::getline(input, temp_string, ',')) {
+      if (temp_string != "Vector__XXX") {
+        receiving_nodes_.emplace_back(std::move(temp_string));
+      }
     }
+  } else {
+    receiving_nodes_.emplace_back(std::move(temp_string));
   }
 }
 
