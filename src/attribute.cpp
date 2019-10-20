@@ -22,6 +22,7 @@
 #include "attribute.hpp"
 
 #include <memory>
+#include <sstream>
 #include <vector>
 
 namespace AS
@@ -31,20 +32,9 @@ namespace CAN
 namespace DbcLoader
 {
 
-Attribute::Attribute()
-  : dbc_obj_type(DbcObjType::MESSAGE),
-    attr_type(AttributeType::STRING)
+std::string Attribute::getDefaultValueDbcText()
 {
-}
-
-Attribute::Attribute(
-  std::string && name,
-  DbcObjType && dbc_obj_type,
-  AttributeType && attr_type)
-  : name_(name),
-    dbc_obj_type(dbc_obj_type),
-    attr_type(attr_type)
-{
+  return default_value_dbc_text_;
 }
 
 std::string Attribute::getName()
@@ -52,9 +42,14 @@ std::string Attribute::getName()
   return name_;
 }
 
-std::string Attribute::getDefaultValueDbcText()
+DbcObjType Attribute::getDbcObjType()
 {
-  return default_value_dbc_text_;
+  return dbc_obj_type_;
+}
+
+AttributeType Attribute::getAttrType()
+{
+  return attr_type_;
 }
 
 EnumAttribute::EnumAttribute(std::string && dbc_text)
@@ -67,33 +62,79 @@ EnumAttribute::EnumAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
   std::vector<std::string> && enum_values)
-  : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::ENUM),
-    enum_values(enum_values), value_(nullptr), default_value_(nullptr)
+    : enum_values(enum_values), default_value_(nullptr)
 {
+  name_ = std::move(name);
+  dbc_obj_type_ = std::move(dbc_obj_type);
+  attr_type_ = AttributeType::ENUM;
   generateText();
+}
+
+EnumAttribute::EnumAttribute(const EnumAttribute & other)
+{
+  dbc_text_ = other.dbc_text_;
+  default_value_dbc_text_ = other.default_value_dbc_text_;
+  name_ = other.name_;
+  
+  if (other.default_value_) {
+    default_value_ = std::make_unique<std::string>(*(other.default_value_));
+  } else {
+    default_value_ = nullptr;
+  }
+
+  dbc_obj_type_ = other.dbc_obj_type_;
+  attr_type_ = other.attr_type_;
+}
+
+EnumAttribute & EnumAttribute::operator=(const EnumAttribute & other)
+{
+  return *this = EnumAttribute(other);
+}
+
+const std::string * EnumAttribute::getDefaultValue()
+{
+  return default_value_.get();
 }
 
 void EnumAttribute::parseDefaultValue(std::string && dbc_text)
 {
   default_value_dbc_text_ = dbc_text;
 
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::istringstream input(default_value_dbc_text_);
+  std::string temp_string;
+
+  input.ignore(12);
+
+  input >> temp_string;
+
+  // Sometimes 2 spaces between preamble and def
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  // Attribute name
+  input >> temp_string;
+  // Default value
+  input >> temp_string;
+
+  setDefaultValue(std::move(temp_string));
 }
 
-std::unique_ptr<std::string> EnumAttribute::getValue()
+void EnumAttribute::setDefaultValue(std::string && default_value)
 {
-  if (value_) {
-    return std::make_unique<std::string>(*value_);
-  } else if (default_value_) {
-    return std::make_unique<std::string>(*default_value_);
-  } else {
-    return nullptr;
-  }
+  default_value_ = std::make_unique<std::string>(std::move(default_value));
+  generateDefaultValueText();
+}
+
+void EnumAttribute::generateDefaultValueText()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
 }
 
 void EnumAttribute::generateText()
 {
   // TODO(jwhitleyastuff): DO THE THING!
+  generateDefaultValueText();
 }
 
 void EnumAttribute::parse()
@@ -112,33 +153,80 @@ FloatAttribute::FloatAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
   float min, float max)
-  : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::FLOAT),
-    min(min), max(max), value_(nullptr), default_value_(nullptr)
+    : min(min), max(max), default_value_(nullptr)
 {
+  name_ = std::move(name);
+  dbc_obj_type_ = std::move(dbc_obj_type);
+  attr_type_ = AttributeType::FLOAT;
   generateText();
+}
+
+FloatAttribute::FloatAttribute(const FloatAttribute & other)
+  : min(other.min), max(other.max)
+{
+  dbc_text_ = other.dbc_text_;
+  default_value_dbc_text_ = other.default_value_dbc_text_;
+  name_ = other.name_;
+  
+  if (other.default_value_) {
+    default_value_ = std::make_unique<float>(*(other.default_value_));
+  } else {
+    default_value_ = nullptr;
+  }
+
+  dbc_obj_type_ = other.dbc_obj_type_;
+  attr_type_ = other.attr_type_;
+}
+
+const float * FloatAttribute::getDefaultValue()
+{
+  return default_value_.get();
+}
+
+FloatAttribute & FloatAttribute::operator=(const FloatAttribute & other)
+{
+  return *this = FloatAttribute(other);
 }
 
 void FloatAttribute::parseDefaultValue(std::string && dbc_text)
 {
   default_value_dbc_text_ = dbc_text;
 
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::istringstream input(default_value_dbc_text_);
+  std::string temp_string;
+
+  input.ignore(12);
+
+  input >> temp_string;
+
+  // Sometimes 2 spaces between preamble and def
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  // Attribute name
+  input >> temp_string;
+  // Default value
+  input >> temp_string;
+
+  setDefaultValue(std::stof(temp_string));
 }
 
-std::unique_ptr<float> FloatAttribute::getValue()
+void FloatAttribute::setDefaultValue(float default_value)
 {
-  if (value_) {
-    return std::make_unique<float>(*value_);
-  } else if (default_value_) {
-    return std::make_unique<float>(*default_value_);
-  } else {
-    return nullptr;
-  }
+  default_value_ = std::make_unique<float>(default_value);
+  generateDefaultValueText();
+}
+
+void FloatAttribute::generateDefaultValueText()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
 }
 
 void FloatAttribute::generateText()
 {
   // TODO(jwhitleyastuff): DO THE THING!
+  generateDefaultValueText();
 }
 
 void FloatAttribute::parse()
@@ -157,33 +245,80 @@ IntAttribute::IntAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type,
   int min, int max)
-  : Attribute(std::move(name), std::move(dbc_obj_type), AttributeType::INT),
-    min(min), max(max), value_(nullptr), default_value_(nullptr)
+    : min(min), max(max), default_value_(nullptr)
 {
+  name_ = std::move(name);
+  dbc_obj_type_ = std::move(dbc_obj_type);
+  attr_type_ = AttributeType::INT;
   generateText();
+}
+
+IntAttribute::IntAttribute(const IntAttribute & other)
+  : min(other.min), max(other.max)
+{
+  dbc_text_ = other.dbc_text_;
+  default_value_dbc_text_ = other.default_value_dbc_text_;
+  name_ = other.name_;
+  
+  if (other.default_value_) {
+    default_value_ = std::make_unique<int>(*(other.default_value_));
+  } else {
+    default_value_ = nullptr;
+  }
+
+  dbc_obj_type_ = other.dbc_obj_type_;
+  attr_type_ = other.attr_type_;
+}
+
+IntAttribute & IntAttribute::operator=(const IntAttribute & other)
+{
+  return *this = IntAttribute(other);
+}
+
+const int * IntAttribute::getDefaultValue()
+{
+  return default_value_.get();
 }
 
 void IntAttribute::parseDefaultValue(std::string && dbc_text)
 {
   default_value_dbc_text_ = dbc_text;
 
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::istringstream input(default_value_dbc_text_);
+  std::string temp_string;
+
+  input.ignore(12);
+
+  input >> temp_string;
+
+  // Sometimes 2 spaces between preamble and def
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  // Attribute name
+  input >> temp_string;
+  // Default value
+  input >> temp_string;
+
+  setDefaultValue(std::stoi(temp_string));
 }
 
-std::unique_ptr<int> IntAttribute::getValue()
+void IntAttribute::setDefaultValue(int default_value)
 {
-  if (value_) {
-    return std::make_unique<int>(*value_);
-  } else if (default_value_) {
-    return std::make_unique<int>(*default_value_);
-  } else {
-    return nullptr;
-  }
+  default_value_ = std::make_unique<int>(default_value);
+  generateDefaultValueText();
+}
+
+void IntAttribute::generateDefaultValueText()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
 }
 
 void IntAttribute::generateText()
 {
   // TODO(jwhitleyastuff): DO THE THING!
+  generateDefaultValueText();
 }
 
 void IntAttribute::parse()
@@ -200,33 +335,79 @@ StringAttribute::StringAttribute(std::string && dbc_text)
 StringAttribute::StringAttribute(
   std::string && name,
   DbcObjType && dbc_obj_type)
-  : Attribute(std::move(name), std::move(dbc_obj_type)),
-    value_(nullptr), default_value_(nullptr)
+    : default_value_(nullptr)
 {
+  name_ = std::move(name);
+  dbc_obj_type_ = std::move(dbc_obj_type);
+  attr_type_ = AttributeType::STRING;
   generateText();
+}
+
+StringAttribute::StringAttribute(const StringAttribute & other)
+{
+  dbc_text_ = other.dbc_text_;
+  default_value_dbc_text_ = other.default_value_dbc_text_;
+  name_ = other.name_;
+
+  if (other.default_value_) {
+    default_value_ = std::make_unique<std::string>(*(other.default_value_));
+  } else {
+    default_value_ = nullptr;
+  }
+
+  dbc_obj_type_ = other.dbc_obj_type_;
+  attr_type_ = other.attr_type_;
+}
+
+StringAttribute & StringAttribute::operator=(const StringAttribute & other)
+{
+  return *this = StringAttribute(other);
+}
+
+const std::string * StringAttribute::getDefaultValue()
+{
+  return default_value_.get();
 }
 
 void StringAttribute::parseDefaultValue(std::string && dbc_text)
 {
   default_value_dbc_text_ = dbc_text;
 
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::istringstream input(default_value_dbc_text_);
+  std::string temp_string;
+
+  input.ignore(12);
+
+  input >> temp_string;
+
+  // Sometimes 2 spaces between preamble and def
+  if (temp_string.empty()) {
+    input >> temp_string;
+  }
+
+  // Attribute name
+  input >> temp_string;
+  // Default value
+  input >> temp_string;
+
+  setDefaultValue(std::move(temp_string));
 }
 
-std::unique_ptr<std::string> StringAttribute::getValue()
+void StringAttribute::setDefaultValue(std::string && default_value)
 {
-  if (value_) {
-    return std::make_unique<std::string>(*value_);
-  } else if (default_value_) {
-    return std::make_unique<std::string>(*default_value_);
-  } else {
-    return nullptr;
-  }
+  default_value_ = std::make_unique<std::string>(std::move(default_value));
+  generateDefaultValueText();
+}
+
+void StringAttribute::generateDefaultValueText()
+{
+  // TODO(jwhitleyastuff): DO THE THING!
 }
 
 void StringAttribute::generateText()
 {
   // TODO(jwhitleyastuff): DO THE THING!
+  generateDefaultValueText();
 }
 
 void StringAttribute::parse()

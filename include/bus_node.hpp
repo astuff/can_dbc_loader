@@ -39,9 +39,14 @@ class BusNode
 {
 public:
   BusNode(std::string && node_name);
+  ~BusNode() = default;
+  BusNode(const BusNode & other);
+  BusNode(BusNode && other) = default;
+  BusNode & operator=(const BusNode & other);
+  BusNode & operator=(BusNode && other) = default;
 
   std::string getName();
-  std::shared_ptr<BusNodeComment> getComment();
+  const std::string * getComment();
 
   friend class Database;
   friend class Message;
@@ -49,7 +54,7 @@ public:
 
 private:
   std::string name_;
-  std::shared_ptr<BusNodeComment> comment_;
+  std::unique_ptr<std::string> comment_;
 };
 
 }  // namespace DbcLoader

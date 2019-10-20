@@ -37,7 +37,8 @@ int main(int argc, char ** argv)
   std::cout << "Message ID: 0x" << std::hex << msg.getId() << std::endl;
   std::cout << "Message name: " << msg.getName() << std::endl;
   std::cout << "Message DLC: " << msg.getDlc() << std::endl;
-  std::cout << "Message transmitting node: " << msg.getTransmittingNode().getName() << std::endl << std::endl;
+  std::cout << "Message transmitting node: " << msg.getTransmittingNode().getName();
+  std::cout << std::endl << std::endl;
 
   Signal sig(std::move(signal_text));
 

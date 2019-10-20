@@ -49,6 +49,11 @@ public:
     unsigned char dlc,
     BusNode && transmitting_node,
     std::vector<Signal> && signals);
+  ~Message() = default;
+  Message(const Message & other);
+  Message(Message && other) = default;
+  Message & operator=(const Message & other);
+  Message & operator=(Message && other) = default;
 
   unsigned int getId();
   std::string getName();
@@ -56,7 +61,7 @@ public:
   unsigned char getLength();
   BusNode getTransmittingNode();
   std::unordered_map<std::string, Signal> getSignals();
-  std::shared_ptr<MessageComment> getComment();
+  const std::string * getComment();
 
   unsigned char dlcToLength(const unsigned char & dlc);
 
@@ -68,7 +73,7 @@ private:
   unsigned char dlc_;
   BusNode transmitting_node_;
   std::unordered_map<std::string, Signal> signals_;
-  std::shared_ptr<MessageComment> comment_;
+  std::unique_ptr<std::string> comment_;
   
   void generateText() override;
   void parse() override;

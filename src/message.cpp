@@ -33,7 +33,8 @@ namespace DbcLoader
 {
 
 Message::Message(std::string && message_text)
-  : transmitting_node_(BusNode(""))
+  : transmitting_node_(BusNode("")),
+    comment_(nullptr)
 {
   dbc_text_ = std::move(message_text);
   parse();
@@ -48,13 +49,33 @@ Message::Message(
   : id_(id),
     name_(name),
     dlc_(dlc),
-    transmitting_node_(transmitting_node)
+    transmitting_node_(transmitting_node),
+    comment_(nullptr)
 {
   for (auto & signal : signals) {
     signals_.emplace(std::make_pair(signal.getName(), std::move(signal)));
   }
 
   generateText();
+}
+
+Message::Message(const Message & other)
+  : id_(other.id_),
+    name_(other.name_),
+    dlc_(other.dlc_),
+    transmitting_node_(other.transmitting_node_),
+    signals_(other.signals_)
+{
+  if (other.comment_) {
+    comment_ = std::make_unique<std::string>(*(other.comment_));
+  } else {
+    comment_ = nullptr;
+  }
+}
+
+Message & Message::operator=(const Message & other)
+{
+  return *this = Message(other);
 }
 
 unsigned int Message::getId()
@@ -79,7 +100,7 @@ unsigned char Message::getLength()
 
 BusNode Message::getTransmittingNode()
 {
-  return transmitting_node_;
+  return BusNode(transmitting_node_);
 }
 
 std::unordered_map<std::string, Signal> Message::getSignals()
@@ -87,9 +108,9 @@ std::unordered_map<std::string, Signal> Message::getSignals()
   return signals_;
 }
 
-std::shared_ptr<MessageComment> Message::getComment()
+const std::string * Message::getComment()
 {
-  return std::shared_ptr<MessageComment>(comment_);
+  return comment_.get();
 }
 
 void Message::generateText()

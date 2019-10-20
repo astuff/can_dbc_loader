@@ -37,6 +37,11 @@ class Comment
 public:
   std::string getComment();
 
+  friend class BusNode;
+  friend class Database;
+  friend class Message;
+  friend class Signal;
+
 protected:
   std::string comment_;
 };

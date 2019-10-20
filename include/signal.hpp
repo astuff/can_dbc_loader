@@ -45,7 +45,7 @@ public:
   Signal(
     std::string && name,
     bool is_multiplex_def,
-    std::shared_ptr<unsigned int> multiplex_id,
+    unsigned int multiplex_id,
     unsigned char start_bit,
     unsigned char length,
     Order endianness,
@@ -58,10 +58,15 @@ public:
     std::vector<BusNode> && receiving_nodes,
     std::map<int, std::string> && value_definitions =
       std::map<int, std::string>());
+  ~Signal() = default;
+  Signal(const Signal & other);
+  Signal(Signal && other) = default;
+  Signal & operator=(const Signal & other);
+  Signal & operator=(Signal && other) = default;
 
   std::string getName();
   bool isMultiplexDef();
-  std::shared_ptr<unsigned int> getMultiplexId();
+  const unsigned int * getMultiplexId();
   unsigned char getStartBit();
   unsigned char getLength();
   Order getEndianness();
@@ -73,7 +78,7 @@ public:
   std::string getUnit();
   std::vector<BusNode> getReceivingNodes();
   std::map<int, std::string> getValueDefinitions();
-  std::shared_ptr<SignalComment> getComment();
+  const std::string * getComment();
 
   friend class Message;
   friend class Database;
@@ -81,7 +86,7 @@ public:
 private:
   std::string name_;
   bool is_multiplex_def_;
-  std::shared_ptr<unsigned int> multiplex_id_;
+  std::unique_ptr<unsigned int> multiplex_id_;
   unsigned char start_bit_;
   unsigned char length_;
   Order endianness_;
@@ -93,7 +98,7 @@ private:
   std::string unit_;
   std::vector<BusNode> receiving_nodes_;
   std::map<int, std::string> value_defs_;
-  std::shared_ptr<SignalComment> comment_;
+  std::unique_ptr<std::string> comment_;
 
   void generateText() override;
   void parse() override;

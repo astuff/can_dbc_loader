@@ -14,9 +14,9 @@ add_library(
   src/attribute.cpp
   src/bus_node.cpp
   src/comment.cpp
-  src/database.cpp
-  src/message.cpp
   src/signal.cpp
+  src/message.cpp
+  src/database.cpp
 )
 
 if(BUILD_EXAMPLES)

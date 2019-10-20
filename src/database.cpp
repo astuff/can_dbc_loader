@@ -35,8 +35,6 @@ namespace CAN
 namespace DbcLoader
 {
 
-// Begin Database
-
 Database::Database(const std::string & dbc_path)
 {
   std::ifstream file_reader;
@@ -61,13 +59,25 @@ Database::Database(
   std::string && bus_config,
   std::vector<BusNode> && bus_nodes,
   std::unordered_map<unsigned int, Message> && messages,
-  std::vector<std::shared_ptr<Attribute>> && attribute_definitions)
+  std::vector<Attribute *> && attribute_definitions)
   : version_(version),
     bus_config_(bus_config),
     bus_nodes_(bus_nodes),
-    messages_(messages),
-    attribute_defs_(attribute_definitions)
+    messages_(messages)
 {
+  for (auto & attr : attribute_definitions) {
+    auto attr_type = attr->getAttrType();
+
+    if (attr_type == AttributeType::ENUM) {
+      attribute_defs_.emplace_back(std::move(dynamic_cast<EnumAttribute *>(attr)));
+    } else if (attr_type == AttributeType::FLOAT) {
+      attribute_defs_.emplace_back(std::move(dynamic_cast<FloatAttribute *>(attr)));
+    } else if (attr_type == AttributeType::INT) {
+      attribute_defs_.emplace_back(std::move(dynamic_cast<IntAttribute *>(attr)));
+    } else if (attr_type == AttributeType::STRING) {
+      attribute_defs_.emplace_back(std::move(dynamic_cast<StringAttribute *>(attr)));
+    }
+  }
 }
 
 void Database::generateDbcFile(const std::string & dbc_path)
@@ -95,9 +105,15 @@ std::unordered_map<unsigned int, Message> Database::getMessages()
   return std::unordered_map<unsigned int, Message>(messages_);
 }
 
-std::vector<std::shared_ptr<Attribute>> Database::getAttributeDefinitions()
+const std::vector<const Attribute *> Database::getAttributeDefinitions()
 {
-  return std::vector<std::shared_ptr<Attribute>>(attribute_defs_);
+  std::vector<const Attribute *> temp_attr_defs;
+
+  for (auto & attr : attribute_defs_) {
+    temp_attr_defs.push_back(attr.get());
+  }
+
+  return temp_attr_defs;
 }
 
 void Database::parse(std::istream & reader)
@@ -190,7 +206,7 @@ void Database::parse(std::istream & reader)
   for (auto & bus_node_comment : bus_node_comments) {
     for (auto & bus_node : bus_nodes_) {
       if (bus_node.name_ == bus_node_comment.getNodeName()) {
-        bus_node.comment_ = std::shared_ptr<BusNodeComment>(new BusNodeComment(std::move(bus_node_comment)));
+        bus_node.comment_ = std::make_unique<std::string>(std::move(bus_node_comment.comment_));
       }
     }
   }
@@ -200,7 +216,7 @@ void Database::parse(std::istream & reader)
     auto msg_itr = messages_.find(message_comment.getMsgId());
 
     if (msg_itr != messages_.end()) {
-      msg_itr->second.comment_ = std::shared_ptr<MessageComment>(new MessageComment(std::move(message_comment)));
+      msg_itr->second.comment_ = std::make_unique<std::string>(std::move(message_comment.comment_));
     }
   }
 
@@ -212,7 +228,7 @@ void Database::parse(std::istream & reader)
       auto signal_itr = msg_itr->second.signals_.find(signal_comment.getSignalName());
 
       if (signal_itr != msg_itr->second.signals_.end()) {
-        signal_itr->second.comment_ = std::shared_ptr<SignalComment>(new SignalComment(std::move(signal_comment)));
+        signal_itr->second.comment_ = std::make_unique<std::string>(std::move(signal_comment.comment_));
       }
     }
   }
@@ -229,8 +245,6 @@ void Database::saveMsg(std::unique_ptr<Message> & msg_ptr)
     messages_.emplace(id, std::move(*(msg_ptr.release())));
   }
 }
-
-// End Database
 
 }  // namespace DbcLoader
 }  // namespace CAN

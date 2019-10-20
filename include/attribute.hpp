@@ -33,28 +33,30 @@ namespace CAN
 namespace DbcLoader
 {
 
-// TODO(jwhitleyastuff): Store Attribute as def, default val, and value
-
 class Attribute
 {
 public:
-  Attribute();
-  Attribute(
-    std::string && name,
-    DbcObjType && dbc_obj_type,
-    AttributeType && attr_type = AttributeType::STRING);
-  virtual ~Attribute() {};
-
   virtual void parseDefaultValue(std::string && dbc_text) = 0;
   std::string getDefaultValueDbcText();
   std::string getName();
+  DbcObjType getDbcObjType();
+  AttributeType getAttrType();
 
-  const DbcObjType dbc_obj_type;
-  const AttributeType attr_type;
+  auto clone() const
+  {
+    return std::unique_ptr<Attribute>(clone_impl());
+  }
+
+  virtual Attribute* clone_impl() const = 0;
 
 protected:
   std::string default_value_dbc_text_;
   std::string name_;
+  DbcObjType dbc_obj_type_;
+  AttributeType attr_type_;
+
+private:
+  virtual void generateDefaultValueText() = 0;
 };
 
 class EnumAttribute
@@ -67,17 +69,27 @@ public:
     DbcObjType && dbc_obj_type,
     std::vector<std::string> && enum_values);
   ~EnumAttribute() = default;
+  EnumAttribute(const EnumAttribute & other);
+  EnumAttribute(EnumAttribute && other) = default;
+  EnumAttribute & operator=(const EnumAttribute & other);
+  EnumAttribute & operator=(EnumAttribute && other) = default;
 
+  const std::string * getDefaultValue();
   void parseDefaultValue(std::string && dbc_text) override;
-  std::unique_ptr<std::string> getValue();
+  void setDefaultValue(std::string && default_value);
 
   const std::vector<std::string> enum_values;
 
 private:
+  void generateDefaultValueText() override;
   void generateText() override;
   void parse() override;
 
-  std::unique_ptr<std::string> value_;
+  EnumAttribute* clone_impl() const override
+  {
+    return new EnumAttribute(*this);
+  }
+
   std::unique_ptr<std::string> default_value_;
 };
 
@@ -91,17 +103,27 @@ public:
     DbcObjType && dbc_obj_type,
     float min, float max);
   ~FloatAttribute() = default;
+  FloatAttribute(const FloatAttribute & other);
+  FloatAttribute(FloatAttribute && other) = default;
+  FloatAttribute & operator=(const FloatAttribute & other);
+  FloatAttribute & operator=(FloatAttribute && other) = default;
 
+  const float * getDefaultValue();
   void parseDefaultValue(std::string && dbc_text) override;
-  std::unique_ptr<float> getValue();
+  void setDefaultValue(float default_value);
 
   const float min, max;
 
 private:
+  void generateDefaultValueText() override;
   void generateText() override;
   void parse() override;
 
-  std::unique_ptr<float> value_;
+  FloatAttribute* clone_impl() const override
+  {
+    return new FloatAttribute(*this);
+  }
+
   std::unique_ptr<float> default_value_;
 };
 
@@ -115,17 +137,27 @@ public:
     DbcObjType && dbc_obj_type,
     int min, int max);
   ~IntAttribute() = default;
+  IntAttribute(const IntAttribute & other);
+  IntAttribute(IntAttribute && other) = default;
+  IntAttribute & operator=(const IntAttribute & other);
+  IntAttribute & operator=(IntAttribute && other) = default;
 
+  const int * getDefaultValue();
   void parseDefaultValue(std::string && dbc_text) override;
-  std::unique_ptr<int> getValue();
+  void setDefaultValue(int default_value);
 
   const int min, max;
 
 private:
+  void generateDefaultValueText() override;
   void generateText() override;
   void parse() override;
 
-  std::unique_ptr<int> value_;
+  IntAttribute* clone_impl() const override
+  {
+    return new IntAttribute(*this);
+  }
+
   std::unique_ptr<int> default_value_;
 };
 
@@ -138,15 +170,25 @@ public:
     std::string && name,
     DbcObjType && dbc_obj_type);
   ~StringAttribute() = default;
+  StringAttribute(const StringAttribute & other);
+  StringAttribute(StringAttribute && other) = default;
+  StringAttribute & operator=(const StringAttribute & other);
+  StringAttribute & operator=(StringAttribute && other) = default;
 
+  const std::string * getDefaultValue();
   void parseDefaultValue(std::string && dbc_text) override;
-  std::unique_ptr<std::string> getValue();
+  void setDefaultValue(std::string && default_value);
 
 private:
+  void generateDefaultValueText() override;
   void generateText() override;
   void parse() override;
 
-  std::unique_ptr<std::string> value_;
+  StringAttribute* clone_impl() const override
+  {
+    return new StringAttribute(*this);
+  }
+
   std::unique_ptr<std::string> default_value_;
 };
 

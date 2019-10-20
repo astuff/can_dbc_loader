@@ -35,14 +35,29 @@ BusNode::BusNode(std::string && node_name)
 {
 }
 
+BusNode::BusNode(const BusNode & other)
+  : name_(other.name_)
+{
+  if (comment_) {
+    comment_ = std::make_unique<std::string>(*(other.comment_));
+  } else {
+    comment_ = nullptr;
+  }
+}
+
+BusNode & BusNode::operator=(const BusNode & other)
+{
+  return *this = BusNode(other);
+}
+
 std::string BusNode::getName()
 {
   return name_;
 }
 
-std::shared_ptr<BusNodeComment> BusNode::getComment()
+const std::string * BusNode::getComment()
 {
-  return std::shared_ptr<BusNodeComment>(comment_);
+  return comment_.get();
 }
 
 }  // namespace DbcLoader

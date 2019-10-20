@@ -42,7 +42,7 @@ Signal::Signal(std::string && dbc_text)
 Signal::Signal(
   std::string && name,
   bool is_multiplex_def,
-  std::shared_ptr<unsigned int> multiplex_id,
+  unsigned int multiplex_id,
   unsigned char start_bit,
   unsigned char length,
   Order endianness,
@@ -56,7 +56,7 @@ Signal::Signal(
   std::map<int, std::string> && value_definitions)
   : name_(name),
     is_multiplex_def_(is_multiplex_def),
-    multiplex_id_(std::move(multiplex_id)),
+    multiplex_id_(new unsigned int(multiplex_id)),
     start_bit_(start_bit),
     length_(length),
     endianness_(endianness),
@@ -67,9 +67,43 @@ Signal::Signal(
     max_(max),
     unit_(unit),
     receiving_nodes_(receiving_nodes),
-    value_defs_(value_definitions)
+    value_defs_(value_definitions),
+    comment_(nullptr)
 {
   generateText();
+}
+
+Signal::Signal(const Signal & other)
+  : name_(other.name_),
+    is_multiplex_def_(other.is_multiplex_def_),
+    start_bit_(other.start_bit_),
+    length_(other.length_),
+    endianness_(other.endianness_),
+    is_signed_(other.is_signed_),
+    factor_(other.factor_),
+    offset_(other.offset_),
+    min_(other.min_),
+    max_(other.max_),
+    unit_(other.unit_),
+    receiving_nodes_(other.receiving_nodes_),
+    value_defs_(other.value_defs_)
+{
+  if (other.multiplex_id_) {
+    multiplex_id_ = std::make_unique<unsigned int>(*(other.multiplex_id_));
+  } else {
+    multiplex_id_ = nullptr;
+  }
+
+  if (other.comment_) {
+    comment_ = std::make_unique<std::string>(*(other.comment_));
+  } else {
+    comment_ = nullptr;
+  }
+}
+
+Signal & Signal::operator=(const Signal & other)
+{
+  return *this = Signal(other);
 }
 
 std::string Signal::getName()
@@ -82,13 +116,9 @@ bool Signal::isMultiplexDef()
   return is_multiplex_def_;
 }
 
-std::shared_ptr<unsigned int> Signal::getMultiplexId()
+const unsigned int * Signal::getMultiplexId()
 {
-  if (multiplex_id_) {
-    return std::shared_ptr<unsigned int>(multiplex_id_);
-  } else {
-    return nullptr;
-  }
+  return multiplex_id_.get();
 }
 
 unsigned char Signal::getStartBit()
@@ -146,9 +176,9 @@ std::map<int, std::string> Signal::getValueDefinitions()
   return value_defs_;
 }
 
-std::shared_ptr<SignalComment> Signal::getComment()
+const std::string * Signal::getComment()
 {
-  return std::shared_ptr<SignalComment>(comment_);
+  return comment_.get();
 }
 
 void Signal::generateText()
@@ -212,7 +242,7 @@ void Signal::parse()
       is_multiplex_def_ = true;
     } else {
       // Assumed to be multiplex identifier
-      multiplex_id_ = std::make_shared<unsigned int>(
+      multiplex_id_ = std::make_unique<unsigned int>(
         static_cast<unsigned int>(
           std::stoul(
             temp_string.substr(1, temp_string.length() - 1))));
