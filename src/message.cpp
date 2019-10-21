@@ -121,6 +121,7 @@ void Message::generateText()
   output << name_ << ": ";
   output << dlc_ << " ";
   output << transmitting_node_.name_;
+  output << std::endl;
 
   dbc_text_ = output.str();
 }

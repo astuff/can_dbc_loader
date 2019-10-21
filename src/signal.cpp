@@ -224,6 +224,8 @@ void Signal::generateText()
       }
     }
   }
+
+  output << std::endl;
   
   dbc_text_ = output.str();
 }

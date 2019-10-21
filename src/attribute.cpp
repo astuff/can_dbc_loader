@@ -132,7 +132,36 @@ void EnumAttribute::generateDefaultValueText()
 
 void EnumAttribute::generateText()
 {
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::ostringstream output;
+
+  output << "BA_DEF_ ";
+
+  switch (dbc_obj_type_) {
+    case DbcObjType::BUS_NODES:
+      output << "BU_ ";
+      break;
+    case DbcObjType::MESSAGE:
+      output << "BO_ ";
+      break;
+    case DbcObjType::SIGNAL:
+      output << "SG_ ";
+      break;
+  }
+
+  output << "\"" << name_ << "\" ENUM ";
+
+  for (const auto & val : enum_values_) {
+    output << "\"" << val << "\"";
+    
+    if (val != enum_values_[enum_values_.size() - 1]) {
+      output << ",";
+    }
+  }
+
+  output << ";" << std::endl;
+
+  dbc_text_ = output.str();
+
   generateDefaultValueText();
 }
 
@@ -262,7 +291,28 @@ void FloatAttribute::generateDefaultValueText()
 
 void FloatAttribute::generateText()
 {
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::ostringstream output;
+
+  output << "BA_DEF_ ";
+
+  switch (dbc_obj_type_) {
+    case DbcObjType::BUS_NODES:
+      output << "BU_ ";
+      break;
+    case DbcObjType::MESSAGE:
+      output << "BO_ ";
+      break;
+    case DbcObjType::SIGNAL:
+      output << "SG_ ";
+      break;
+  }
+
+  output << "\"" << name_ << "\" FLOAT ";
+  output << min_ << " " << max_ << ";";
+  output << std::endl;
+
+  dbc_text_ = output.str();
+
   generateDefaultValueText();
 }
 
@@ -382,7 +432,28 @@ void IntAttribute::generateDefaultValueText()
 
 void IntAttribute::generateText()
 {
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::ostringstream output;
+
+  output << "BA_DEF_ ";
+
+  switch (dbc_obj_type_) {
+    case DbcObjType::BUS_NODES:
+      output << "BU_ ";
+      break;
+    case DbcObjType::MESSAGE:
+      output << "BO_ ";
+      break;
+    case DbcObjType::SIGNAL:
+      output << "SG_ ";
+      break;
+  }
+
+  output << "\"" << name_ << "\" INT ";
+  output << min_ << " " << max_ << ";";
+  output << std::endl;
+
+  dbc_text_ = output.str();
+
   generateDefaultValueText();
 }
 
@@ -500,7 +571,27 @@ void StringAttribute::generateDefaultValueText()
 
 void StringAttribute::generateText()
 {
-  // TODO(jwhitleyastuff): DO THE THING!
+  std::ostringstream output;
+
+  output << "BA_DEF_ ";
+
+  switch (dbc_obj_type_) {
+    case DbcObjType::BUS_NODES:
+      output << "BU_ ";
+      break;
+    case DbcObjType::MESSAGE:
+      output << "BO_ ";
+      break;
+    case DbcObjType::SIGNAL:
+      output << "SG_ ";
+      break;
+  }
+
+  output << "\"" << name_ << "\" STRING;";
+  output << std::endl;
+
+  dbc_text_ = output.str();
+
   generateDefaultValueText();
 }
 
