@@ -109,7 +109,16 @@ struct DbcReadException
 {
   const char * what() const throw()
   {
-    return "Exception when reading DBC file.";
+    return "Exception when reading DBC file from disk.";
+  }
+};
+
+struct DbcWriteException
+  : public std::exception
+{
+  const char * what() const throw()
+  {
+    return "Exception when writing DBC file to disk.";
   }
 };
 

@@ -82,7 +82,90 @@ Database::Database(
 
 void Database::generateDbcFile(const std::string & dbc_path)
 {
-  // TODO(jwhitleyastuff): Do the thing!
+  std::ofstream file_writer;
+  std::map<std::string, std::string> bus_node_comments;
+  std::map<unsigned int, std::string> message_comments;
+  std::map<std::pair<unsigned int, std::string>, std::string> signal_comments;
+  file_writer.open(dbc_path);
+
+  if (file_writer.is_open()) {
+    file_writer << "VERSION \"" << version_ << "\"\n\n\n";
+    file_writer << "NS_ :\n";
+    file_writer << "\tNS_DESC_\n";
+    file_writer << "\tCM_\n";
+    file_writer << "\tBA_DEF_\n";
+    file_writer << "\tBA_\n";
+    file_writer << "\tVAL_\n";
+    file_writer << "\tCAT_DEF_\n";
+    file_writer << "\tCAT_\n";
+    file_writer << "\tFILTER\n";
+    file_writer << "\tBA_DEF_DEF_\n";
+    file_writer << "\tEV_DATA_\n";
+    file_writer << "\tENVVAR_DATA_\n";
+    file_writer << "\tSGTYPE_\n";
+    file_writer << "\tSGTYPE_VAL_\n";
+    file_writer << "\tBA_DEF_SGTYPE_\n";
+    file_writer << "\tBA_SGTYPE_\n";
+    file_writer << "\tSIG_TYPE_REF_\n";
+    file_writer << "\tVAL_TABLE_\n";
+    file_writer << "\tSIG_GROUP_\n";
+    file_writer << "\tSIG_VALTYPE_\n";
+    file_writer << "\tSIGTYPE_VALTYPE_\n";
+    file_writer << "\tBO_TX_BU_\n";
+    file_writer << "\tBA_DEF_REL_\n";
+    file_writer << "\tBA_REL_\n";
+    file_writer << "\tBA_DEF_DEF_REL_\n";
+    file_writer << "\tBU_SG_REL_\n";
+    file_writer << "\tBU_EV_REL_\n";
+    file_writer << "\tBU_BO_REL_\n";
+    file_writer << "\tSG_MUL_VAL_\n" << std::endl;
+    file_writer << "BS_: " << bus_config_ << "\n\n";
+    file_writer << "BU_: ";
+
+    for (auto i = 0; i < bus_nodes_.size(); ++i) {
+      file_writer << bus_nodes_[i].name_;
+
+      if (bus_nodes_[i].comment_ != nullptr) {
+        bus_node_comments.emplace(bus_nodes_[i].name_, *(bus_nodes_[i].comment_));
+      }
+
+      if (i != bus_nodes_.size() - 1) {
+        file_writer << ",";
+      }
+    }
+
+    file_writer << "\n\n" << std::endl;
+
+    for (auto & msg : messages_) {
+      file_writer << msg.second.dbc_text_;
+
+      if (msg.second.comment_ != nullptr) {
+        message_comments.emplace(msg.second.id_, *(msg.second.comment_));
+      }
+
+      for (auto & sig : msg.second.signals_) {
+        if (sig.second.comment_ != nullptr) {
+          signal_comments.emplace(
+            std::make_pair(msg.second.id_, sig.second.name_),
+            *(sig.second.comment_));
+        }
+
+        file_writer << sig.second.dbc_text_;
+      }
+
+      file_writer << std::endl;
+    }
+
+    // TODO(jwhitleyastuff): Write out comments
+    // TODO(jwhitleyastuff): Write out attribute defs
+    // TODO(jwhitleyastuff): Write out attribute default values
+    // TODO(jwhitleyastuff): Write out attribute values
+    // TODO(jwhitleyastuff): Write out signal value lists
+  } else {
+    throw DbcWriteException();
+  }
+
+  file_writer.close();
 }
 
 std::string Database::getVersion()
@@ -126,7 +209,7 @@ void Database::parse(std::istream & reader)
   std::vector<BusNodeComment> bus_node_comments;
   std::vector<MessageComment> message_comments;
   std::vector<SignalComment> signal_comments;
-  std::unordered_map<std::string, std::string> attr_texts;
+  std::unordered_map<std::string, std::pair<AttributeType, std::string>> attr_texts;
   std::unordered_map<std::string, std::string> attr_def_val_texts;
 
   while (std::getline(reader, line)) {
@@ -194,7 +277,8 @@ void Database::parse(std::istream & reader)
       } else if (preamble == PREAMBLES[7]) {  // ATTRIBUTE DEFINITION
         saveMsg(current_msg);
 
-        std::string attr_name;
+        std::string attr_name, temp_type;
+        AttributeType attr_type;
         iss_line.ignore(4);
         iss_line >> attr_name;
 
@@ -203,7 +287,22 @@ void Database::parse(std::istream & reader)
           iss_line >> attr_name;
         }
 
-        attr_texts[attr_name] = std::move(line);
+        // Remove parentheses
+        attr_name = attr_name.substr(1, attr_name.length() - 2);
+
+        iss_line >> temp_type;
+
+        if (temp_type == "ENUM") {
+          attr_type = AttributeType::ENUM;
+        } else if (temp_type == "FLOAT") {
+          attr_type = AttributeType::FLOAT;
+        } else if (temp_type == "HEX" || temp_type == "INT") {
+          attr_type = AttributeType::INT;
+        } else if (temp_type.rfind("STRING", 0) == 0) {
+          attr_type = AttributeType::STRING;
+        }
+
+        attr_texts[attr_name] = std::make_pair(attr_type, std::move(line));
       } else if (preamble == PREAMBLES[8]) {  // ATTRIBUTE DEFAULT VALUE
         saveMsg(current_msg);
 
@@ -253,6 +352,45 @@ void Database::parse(std::istream & reader)
       if (signal_itr != msg_itr->second.signals_.end()) {
         signal_itr->second.comment_ = std::make_unique<std::string>(std::move(signal_comment.comment_));
       }
+    }
+  }
+
+  // Add attribute definitions
+  for (auto & attr : attr_texts) {
+    auto found_def_val = attr_def_val_texts.find(attr.first);
+
+    std::string dbc_text = std::move(attr.second.second);
+    std::string def_val_dbc_text = "";
+
+    if (found_def_val != attr_def_val_texts.end()) {
+      def_val_dbc_text = std::move(found_def_val->second);
+    }
+
+    switch (attr.second.first) {
+      case AttributeType::ENUM:
+      {
+        auto temp_attr = std::make_unique<EnumAttribute>(
+          EnumAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
+        attribute_defs_.emplace_back(std::move(temp_attr));
+      } break;
+      case AttributeType::FLOAT:
+      {
+        auto temp_attr = std::make_unique<FloatAttribute>(
+          FloatAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
+        attribute_defs_.emplace_back(std::move(temp_attr));
+      } break;
+      case AttributeType::INT:
+      {
+        auto temp_attr = std::make_unique<IntAttribute>(
+          IntAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
+        attribute_defs_.emplace_back(std::move(temp_attr));
+      } break;
+      case AttributeType::STRING:
+      {
+        auto temp_attr = std::make_unique<StringAttribute>(
+          StringAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
+        attribute_defs_.emplace_back(std::move(temp_attr));
+      } break;
     }
   }
 
