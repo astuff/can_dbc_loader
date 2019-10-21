@@ -91,10 +91,11 @@ enum class DbcObjType
 
 enum class AttributeType
 {
-  INT,
+  ENUM,
   FLOAT,
-  STRING,
-  ENUM
+  HEX,
+  INT,
+  STRING
 };
 
 enum class Order

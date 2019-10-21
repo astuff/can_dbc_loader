@@ -126,6 +126,8 @@ void Database::parse(std::istream & reader)
   std::vector<BusNodeComment> bus_node_comments;
   std::vector<MessageComment> message_comments;
   std::vector<SignalComment> signal_comments;
+  std::unordered_map<std::string, std::string> attr_texts;
+  std::unordered_map<std::string, std::string> attr_def_val_texts;
 
   while (std::getline(reader, line)) {
     if (!line.empty()) {
@@ -191,8 +193,29 @@ void Database::parse(std::istream & reader)
         saveMsg(current_msg);
       } else if (preamble == PREAMBLES[7]) {  // ATTRIBUTE DEFINITION
         saveMsg(current_msg);
+
+        std::string attr_name;
+        iss_line.ignore(4);
+        iss_line >> attr_name;
+
+        // Sometimes two spaces between preamble and name
+        if (attr_name.empty()) {
+          iss_line >> attr_name;
+        }
+
+        attr_texts[attr_name] = std::move(line);
       } else if (preamble == PREAMBLES[8]) {  // ATTRIBUTE DEFAULT VALUE
         saveMsg(current_msg);
+
+        std::string attr_name;
+        iss_line >> attr_name;
+
+        // Sometimes two spaces between preamble and name
+        if (attr_name.empty()) {
+          iss_line >> attr_name;
+        }
+
+        attr_def_val_texts[attr_name] = std::move(line);
       } else if (preamble == PREAMBLES[9]) {  // ATTRIBUTE VALUE
         saveMsg(current_msg);
       }
