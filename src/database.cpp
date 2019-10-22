@@ -219,12 +219,35 @@ std::unordered_map<unsigned int, Message> Database::getMessages()
   return std::unordered_map<unsigned int, Message>(messages_);
 }
 
-const std::vector<const Attribute *> Database::getAttributeDefinitions()
+std::vector<const Attribute *> Database::getAttributeDefinitions()
 {
   std::vector<const Attribute *> temp_attr_defs;
 
   for (auto & attr : attribute_defs_) {
-    temp_attr_defs.push_back(attr.get());
+    auto attr_type = attr->getAttrType();
+
+    switch (attr_type) {
+      case AttributeType::ENUM:
+      {
+        auto enum_ptr = dynamic_cast<const EnumAttribute *>(attr.get());
+        temp_attr_defs.emplace_back(std::move(enum_ptr));
+      } break;
+      case AttributeType::FLOAT:
+      {
+        auto float_ptr = dynamic_cast<const FloatAttribute *>(attr.get());
+        temp_attr_defs.emplace_back(std::move(float_ptr));
+      } break;
+      case AttributeType::INT:
+      {
+        auto int_ptr = dynamic_cast<const IntAttribute *>(attr.get());
+        temp_attr_defs.emplace_back(std::move(int_ptr));
+      } break;
+      case AttributeType::STRING:
+      {
+        auto str_ptr = dynamic_cast<const StringAttribute *>(attr.get());
+        temp_attr_defs.emplace_back(std::move(str_ptr));
+      } break;
+    }
   }
 
   return temp_attr_defs;
@@ -318,9 +341,6 @@ void Database::parse(std::istream & reader)
           iss_line >> attr_name;
         }
 
-        // Remove parentheses
-        attr_name = attr_name.substr(1, attr_name.length() - 2);
-
         iss_line >> temp_type;
 
         if (temp_type == "ENUM") {
@@ -388,7 +408,6 @@ void Database::parse(std::istream & reader)
 
   // Add attribute definitions
   for (auto & attr : attr_texts) {
-    // TODO(jwhitleyastuff): Something in here goes boom
     auto found_def_val = attr_def_val_texts.find(attr.first);
 
     std::string dbc_text = std::move(attr.second.second);
@@ -399,32 +418,30 @@ void Database::parse(std::istream & reader)
     }
 
     switch (attr.second.first) {
-    /*
       case AttributeType::ENUM:
       {
-        auto temp_attr = std::make_unique<EnumAttribute>(
-          EnumAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
-        // attribute_defs_.emplace_back(std::move(temp_attr));
+        EnumAttribute enum_attr(std::move(dbc_text), std::move(def_val_dbc_text));
+        std::unique_ptr<Attribute> temp_attr = std::make_unique<EnumAttribute>(enum_attr);
+        attribute_defs_.push_back(std::move(temp_attr));
       } break;
       case AttributeType::FLOAT:
       {
-        auto temp_attr = std::make_unique<FloatAttribute>(
-          FloatAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
-        attribute_defs_.emplace_back(std::move(temp_attr));
+        FloatAttribute float_attr(std::move(dbc_text), std::move(def_val_dbc_text));
+        std::unique_ptr<Attribute> temp_attr = std::make_unique<FloatAttribute>(float_attr);
+        attribute_defs_.push_back(std::move(temp_attr));
       } break;
       case AttributeType::INT:
       {
-        auto temp_attr = std::make_unique<IntAttribute>(
-          IntAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
-        attribute_defs_.emplace_back(std::move(temp_attr));
+        IntAttribute int_attr(std::move(dbc_text), std::move(def_val_dbc_text));
+        std::unique_ptr<Attribute> temp_attr = std::make_unique<IntAttribute>(int_attr);
+        attribute_defs_.push_back(std::move(temp_attr));
       } break;
       case AttributeType::STRING:
       {
-        auto temp_attr = std::make_unique<StringAttribute>(
-          StringAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
-        attribute_defs_.emplace_back(std::move(temp_attr));
+        StringAttribute str_attr(std::move(dbc_text), std::move(def_val_dbc_text));
+        std::unique_ptr<Attribute> temp_attr = std::make_unique<StringAttribute>(str_attr);
+        attribute_defs_.push_back(std::move(temp_attr));
       } break;
-    */
     }
   }
 

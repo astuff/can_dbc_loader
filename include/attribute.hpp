@@ -39,10 +39,10 @@ class Attribute
   : public DbcObj
 {
 public:
-  std::string getDefaultValueDbcText();
-  std::string getName();
-  DbcObjType getDbcObjType();
-  AttributeType getAttrType();
+  virtual std::string getDefaultValueDbcText() const;
+  virtual std::string getName() const;
+  virtual DbcObjType getDbcObjType() const;
+  virtual AttributeType getAttrType() const = 0;
 
 protected:
   void generateText() override;
@@ -51,7 +51,6 @@ protected:
   std::string default_value_dbc_text_;
   std::string name_;
   DbcObjType dbc_obj_type_;
-  AttributeType attr_type_;
 
 private:
   virtual void generateDefaultValueText() = 0;
@@ -78,8 +77,9 @@ public:
   EnumAttribute & operator=(const EnumAttribute & other);
   EnumAttribute & operator=(EnumAttribute && other) = default;
 
-  std::vector<const std::string *> getEnumValues();
-  const std::string * getDefaultValue();
+  std::vector<const std::string *> getEnumValues() const;
+  const std::string * getDefaultValue() const;
+  AttributeType getAttrType() const { return AttributeType::ENUM; };
 
 private:
   void generateDefaultValueText();
@@ -109,9 +109,10 @@ public:
   FloatAttribute & operator=(const FloatAttribute & other);
   FloatAttribute & operator=(FloatAttribute && other) = default;
 
-  float getMin();
-  float getMax();
-  const float * getDefaultValue();
+  float getMin() const;
+  float getMax() const;
+  const float * getDefaultValue() const;
+  AttributeType getAttrType() const { return AttributeType::FLOAT; };
 
 private:
   void generateDefaultValueText();
@@ -141,9 +142,10 @@ public:
   IntAttribute & operator=(const IntAttribute & other);
   IntAttribute & operator=(IntAttribute && other) = default;
 
-  int getMin();
-  int getMax();
-  const int * getDefaultValue();
+  int getMin() const;
+  int getMax() const;
+  const int * getDefaultValue() const;
+  AttributeType getAttrType() const { return AttributeType::INT; };
 
 private:
   void generateDefaultValueText();
@@ -172,7 +174,8 @@ public:
   StringAttribute & operator=(const StringAttribute & other);
   StringAttribute & operator=(StringAttribute && other) = default;
 
-  const std::string * getDefaultValue();
+  AttributeType getAttrType() const { return AttributeType::STRING; };
+  const std::string * getDefaultValue() const;
 
 private:
   void generateDefaultValueText();

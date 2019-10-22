@@ -34,24 +34,19 @@ namespace DbcLoader
 
 // Begin Attribute Base Class
 
-std::string Attribute::getDefaultValueDbcText()
+std::string Attribute::getDefaultValueDbcText() const
 {
   return default_value_dbc_text_;
 }
 
-std::string Attribute::getName()
+std::string Attribute::getName() const
 {
   return name_;
 }
 
-DbcObjType Attribute::getDbcObjType()
+DbcObjType Attribute::getDbcObjType() const
 {
   return dbc_obj_type_;
-}
-
-AttributeType Attribute::getAttrType()
-{
-  return attr_type_;
 }
 
 void Attribute::generateText()
@@ -134,7 +129,6 @@ EnumAttribute::EnumAttribute(
 {
   name_ = name;
   dbc_obj_type_ = dbc_obj_type;
-  attr_type_ = AttributeType::ENUM;
   enum_values_ = enum_values;
 
   if (default_value != nullptr) {
@@ -153,7 +147,6 @@ EnumAttribute::EnumAttribute(const EnumAttribute & other)
   default_value_dbc_text_ = other.default_value_dbc_text_;
   name_ = other.name_;
   dbc_obj_type_ = other.dbc_obj_type_;
-  attr_type_ = other.attr_type_;
 
   if (other.default_value_) {
     default_value_ = std::make_unique<std::string>(*(other.default_value_));
@@ -167,7 +160,7 @@ EnumAttribute & EnumAttribute::operator=(const EnumAttribute & other)
   return *this = EnumAttribute(other);
 }
 
-std::vector<const std::string *> EnumAttribute::getEnumValues()
+std::vector<const std::string *> EnumAttribute::getEnumValues() const
 {
   std::vector<const std::string *> enum_ptrs_;
 
@@ -178,7 +171,7 @@ std::vector<const std::string *> EnumAttribute::getEnumValues()
   return enum_ptrs_;
 }
 
-const std::string * EnumAttribute::getDefaultValue()
+const std::string * EnumAttribute::getDefaultValue() const
 {
   return default_value_.get();
 }
@@ -228,7 +221,9 @@ void EnumAttribute::parseTypeSpecificValues(std::istringstream & input)
   auto first_comma = temp_string.find(",");
 
   if (first_comma != std::string::npos) {
-    while (std::getline(std::istringstream(temp_string), enum_val, ',')) {
+    std::istringstream temp_stream(temp_string);
+
+    while (std::getline(temp_stream, enum_val, ',')) {
       enum_val = enum_val.substr(1, enum_val.length() - 2);
 
       // Remove ending semicolon
@@ -289,7 +284,6 @@ FloatAttribute::FloatAttribute(
 {
   name_ = std::move(name);
   dbc_obj_type_ = dbc_obj_type;
-  attr_type_ = AttributeType::FLOAT;
 
   if (default_value != nullptr) {
     default_value_ = std::make_unique<float>(*default_value);
@@ -307,7 +301,6 @@ FloatAttribute::FloatAttribute(const FloatAttribute & other)
   default_value_dbc_text_ = other.default_value_dbc_text_;
   name_ = other.name_;
   dbc_obj_type_ = other.dbc_obj_type_;
-  attr_type_ = other.attr_type_;
   
   if (other.default_value_) {
     default_value_ = std::make_unique<float>(*(other.default_value_));
@@ -321,7 +314,17 @@ FloatAttribute & FloatAttribute::operator=(const FloatAttribute & other)
   return *this = FloatAttribute(other);
 }
 
-const float * FloatAttribute::getDefaultValue()
+float FloatAttribute::getMin() const
+{
+  return min_;
+}
+
+float FloatAttribute::getMax() const
+{
+  return max_;
+}
+
+const float * FloatAttribute::getDefaultValue() const
 {
   return default_value_.get();
 }
@@ -411,7 +414,6 @@ IntAttribute::IntAttribute(
 {
   name_ = name;
   dbc_obj_type_ = dbc_obj_type;
-  attr_type_ = AttributeType::INT;
 
   if (default_value != nullptr) {
     default_value_ = std::make_unique<int>(*default_value);
@@ -429,7 +431,6 @@ IntAttribute::IntAttribute(const IntAttribute & other)
   default_value_dbc_text_ = other.default_value_dbc_text_;
   name_ = other.name_;
   dbc_obj_type_ = other.dbc_obj_type_;
-  attr_type_ = other.attr_type_;
   
   if (other.default_value_) {
     default_value_ = std::make_unique<int>(*(other.default_value_));
@@ -443,7 +444,17 @@ IntAttribute & IntAttribute::operator=(const IntAttribute & other)
   return *this = IntAttribute(other);
 }
 
-const int * IntAttribute::getDefaultValue()
+int IntAttribute::getMin() const
+{
+  return min_;
+}
+
+int IntAttribute::getMax() const
+{
+  return max_;
+}
+
+const int * IntAttribute::getDefaultValue() const
 {
   return default_value_.get();
 }
@@ -531,7 +542,6 @@ StringAttribute::StringAttribute(
 {
   name_ = name;
   dbc_obj_type_ = dbc_obj_type;
-  attr_type_ = AttributeType::STRING;
 
   if (default_value != nullptr) {
     default_value_ = std::make_unique<std::string>(*default_value);
@@ -548,7 +558,6 @@ StringAttribute::StringAttribute(const StringAttribute & other)
   default_value_dbc_text_ = other.default_value_dbc_text_;
   name_ = other.name_;
   dbc_obj_type_ = other.dbc_obj_type_;
-  attr_type_ = other.attr_type_;
 
   if (other.default_value_) {
     default_value_ = std::make_unique<std::string>(*(other.default_value_));
@@ -562,7 +571,7 @@ StringAttribute & StringAttribute::operator=(const StringAttribute & other)
   return *this = StringAttribute(other);
 }
 
-const std::string * StringAttribute::getDefaultValue()
+const std::string * StringAttribute::getDefaultValue() const
 {
   return default_value_.get();
 }
