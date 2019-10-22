@@ -20,6 +20,7 @@
 
 #include "comment.hpp"
 
+#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -70,10 +71,12 @@ void BusNodeComment::parse()
   // Ignore the preamble and comment type
   input.ignore(8);
   input >> node_name_;
-  input >> comment_;
 
-  // Remove surrounding parentheses and ending semicolon
-  comment_ = comment_.substr(1, comment_.length() - 3);
+  // Comments can contain spaces so we have to look for the semicolon at the end
+  std::getline(input, comment_, ';');
+
+  // Remove surrounding parentheses
+  comment_ = comment_.substr(1, comment_.length() - 2);
 }
 
 MessageComment::MessageComment(std::string && dbc_text)
@@ -111,10 +114,12 @@ void MessageComment::parse()
   // Ignore the preamble and comment type
   input.ignore(8);
   input >> msg_id_;
-  input >> comment_;
 
-  // Remove surrounding parentheses and ending semicolon
-  comment_ = comment_.substr(1, comment_.length() - 3);
+  // Comments can contain spaces so we have to look for the semicolon at the end
+  std::getline(input, comment_, ';');
+
+  // Remove surrounding parentheses
+  comment_ = comment_.substr(1, comment_.length() - 2);
 }
 
 SignalComment::SignalComment(std::string && dbc_text)
@@ -157,17 +162,19 @@ void SignalComment::generateText()
 
 void SignalComment::parse()
 {
-  std::istringstream input;
+  std::istringstream input(dbc_text_);
 
   // Ignore the preamble and comment type
   input.ignore(8);
 
   input >> msg_id_;
   input >> signal_name_;
-  input >> comment_;
 
-  // Remove surrounding parentheses and ending semicolon
-  comment_ = comment_.substr(1, comment_.length() - 3);
+  // Comments can contain spaces so we have to look for the semicolon at the end
+  std::getline(input, comment_, ';');
+
+  // Remove surrounding parentheses
+  comment_ = comment_.substr(1, comment_.length() - 2);
 }
 
 }  // namespace DbcLoader

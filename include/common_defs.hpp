@@ -140,6 +140,8 @@ public:
     return dbc_text_;
   }
 
+  friend class Database;
+
 protected:
   std::string dbc_text_;
 

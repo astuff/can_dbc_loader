@@ -29,6 +29,16 @@ if(BUILD_EXAMPLES)
     parse_types
     can_dbc_loader
   )
+
+  add_executable(
+    read_dbc
+    examples/read_dbc.cpp
+  )
+
+  target_link_libraries(
+    read_dbc
+    can_dbc_loader
+  )
 endif()
 
 install(

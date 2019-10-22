@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -80,92 +81,122 @@ Database::Database(
   }
 }
 
-void Database::generateDbcFile(const std::string & dbc_path)
+void Database::writeDbcToFile(const std::string & dbc_path)
 {
   std::ofstream file_writer;
-  std::map<std::string, std::string> bus_node_comments;
-  std::map<unsigned int, std::string> message_comments;
-  std::map<std::pair<unsigned int, std::string>, std::string> signal_comments;
   file_writer.open(dbc_path);
 
   if (file_writer.is_open()) {
-    file_writer << "VERSION \"" << version_ << "\"\n\n\n";
-    file_writer << "NS_ :\n";
-    file_writer << "\tNS_DESC_\n";
-    file_writer << "\tCM_\n";
-    file_writer << "\tBA_DEF_\n";
-    file_writer << "\tBA_\n";
-    file_writer << "\tVAL_\n";
-    file_writer << "\tCAT_DEF_\n";
-    file_writer << "\tCAT_\n";
-    file_writer << "\tFILTER\n";
-    file_writer << "\tBA_DEF_DEF_\n";
-    file_writer << "\tEV_DATA_\n";
-    file_writer << "\tENVVAR_DATA_\n";
-    file_writer << "\tSGTYPE_\n";
-    file_writer << "\tSGTYPE_VAL_\n";
-    file_writer << "\tBA_DEF_SGTYPE_\n";
-    file_writer << "\tBA_SGTYPE_\n";
-    file_writer << "\tSIG_TYPE_REF_\n";
-    file_writer << "\tVAL_TABLE_\n";
-    file_writer << "\tSIG_GROUP_\n";
-    file_writer << "\tSIG_VALTYPE_\n";
-    file_writer << "\tSIGTYPE_VALTYPE_\n";
-    file_writer << "\tBO_TX_BU_\n";
-    file_writer << "\tBA_DEF_REL_\n";
-    file_writer << "\tBA_REL_\n";
-    file_writer << "\tBA_DEF_DEF_REL_\n";
-    file_writer << "\tBU_SG_REL_\n";
-    file_writer << "\tBU_EV_REL_\n";
-    file_writer << "\tBU_BO_REL_\n";
-    file_writer << "\tSG_MUL_VAL_\n" << std::endl;
-    file_writer << "BS_: " << bus_config_ << "\n\n";
-    file_writer << "BU_: ";
-
-    for (auto i = 0; i < bus_nodes_.size(); ++i) {
-      file_writer << bus_nodes_[i].name_;
-
-      if (bus_nodes_[i].comment_ != nullptr) {
-        bus_node_comments.emplace(bus_nodes_[i].name_, *(bus_nodes_[i].comment_));
-      }
-
-      if (i != bus_nodes_.size() - 1) {
-        file_writer << ",";
-      }
-    }
-
-    file_writer << "\n\n" << std::endl;
-
-    for (auto & msg : messages_) {
-      file_writer << msg.second.dbc_text_;
-
-      if (msg.second.comment_ != nullptr) {
-        message_comments.emplace(msg.second.id_, *(msg.second.comment_));
-      }
-
-      for (auto & sig : msg.second.signals_) {
-        if (sig.second.comment_ != nullptr) {
-          signal_comments.emplace(
-            std::make_pair(msg.second.id_, sig.second.name_),
-            *(sig.second.comment_));
-        }
-
-        file_writer << sig.second.dbc_text_;
-      }
-
-      file_writer << std::endl;
-    }
-
-    // TODO(jwhitleyastuff): Write out comments
-    // TODO(jwhitleyastuff): Write out attribute defs
-    // TODO(jwhitleyastuff): Write out attribute default values
-    // TODO(jwhitleyastuff): Write out attribute values
-    // TODO(jwhitleyastuff): Write out signal value lists
+    generate(file_writer);
   } else {
     throw DbcWriteException();
   }
 
   file_writer.close();
+}
+
+void Database::writeDbcToStream(std::ostream & mem_stream)
+{
+  generate(mem_stream);
+}
+
+void Database::generate(std::ostream & output)
+{
+  std::vector<BusNodeComment> bus_node_comments;
+  std::vector<MessageComment> message_comments;
+  std::vector<SignalComment> signal_comments;
+
+  output << "VERSION \"" << version_ << "\"\n\n\n";
+  output << "NS_ :\n";
+  output << "\tNS_DESC_\n";
+  output << "\tCM_\n";
+  output << "\tBA_DEF_\n";
+  output << "\tBA_\n";
+  output << "\tVAL_\n";
+  output << "\tCAT_DEF_\n";
+  output << "\tCAT_\n";
+  output << "\tFILTER\n";
+  output << "\tBA_DEF_DEF_\n";
+  output << "\tEV_DATA_\n";
+  output << "\tENVVAR_DATA_\n";
+  output << "\tSGTYPE_\n";
+  output << "\tSGTYPE_VAL_\n";
+  output << "\tBA_DEF_SGTYPE_\n";
+  output << "\tBA_SGTYPE_\n";
+  output << "\tSIG_TYPE_REF_\n";
+  output << "\tVAL_TABLE_\n";
+  output << "\tSIG_GROUP_\n";
+  output << "\tSIG_VALTYPE_\n";
+  output << "\tSIGTYPE_VALTYPE_\n";
+  output << "\tBO_TX_BU_\n";
+  output << "\tBA_DEF_REL_\n";
+  output << "\tBA_REL_\n";
+  output << "\tBA_DEF_DEF_REL_\n";
+  output << "\tBU_SG_REL_\n";
+  output << "\tBU_EV_REL_\n";
+  output << "\tBU_BO_REL_\n";
+  output << "\tSG_MUL_VAL_\n" << std::endl;
+  output << "BS_: " << bus_config_ << "\n\n";
+  output << "BU_: ";
+
+  for (auto i = 0; i < bus_nodes_.size(); ++i) {
+    output << bus_nodes_[i].name_;
+
+    if (bus_nodes_[i].comment_ != nullptr) {
+      std::string comment = *(bus_nodes_[i].getComment());
+      bus_node_comments.emplace_back(
+        bus_nodes_[i].getName(),
+        std::move(comment));
+    }
+
+    if (i != bus_nodes_.size() - 1) {
+      output << ",";
+    }
+  }
+
+  output << "\n\n" << std::endl;
+
+  for (auto & msg : messages_) {
+    output << msg.second.dbc_text_;
+
+    if (msg.second.comment_ != nullptr) {
+      std::string comment = *(msg.second.getComment());
+      message_comments.emplace_back(
+        msg.second.getId(),
+        std::move(comment));
+    }
+
+    for (auto & sig : msg.second.signals_) {
+      if (sig.second.comment_ != nullptr) {
+        std::string comment = *(sig.second.getComment());
+        signal_comments.emplace_back(
+          msg.second.getId(),
+          sig.second.getName(),
+          std::move(comment));
+      }
+
+      output << sig.second.dbc_text_;
+    }
+
+    output << std::endl;
+  }
+
+  for (auto & comment : bus_node_comments) {
+    output << comment.dbc_text_;
+  }
+
+  for (auto & comment : message_comments) {
+    output << comment.dbc_text_;
+  }
+
+  for (auto & comment : signal_comments) {
+    output << comment.dbc_text_;
+  }
+
+  // TODO(jwhitleyastuff): Write out attribute defs
+  // TODO(jwhitleyastuff): Write out attribute default values
+  // TODO(jwhitleyastuff): Write out attribute values
+  // TODO(jwhitleyastuff): Write out signal value lists
 }
 
 std::string Database::getVersion()
@@ -219,9 +250,9 @@ void Database::parse(std::istream & reader)
 
       iss_line >> preamble;
 
-      // Some lines begin with a space
-      if (preamble.empty()) {
-        iss_line >> preamble;
+      // If there is a preamble but nothing else, don't try to parse
+      if (iss_line.peek() == std::char_traits<wchar_t>::eof()) {
+        continue;
       }
 
       if (!version_found && preamble == PREAMBLES[0]) {  // VERSION
@@ -357,6 +388,7 @@ void Database::parse(std::istream & reader)
 
   // Add attribute definitions
   for (auto & attr : attr_texts) {
+    // TODO(jwhitleyastuff): Something in here goes boom
     auto found_def_val = attr_def_val_texts.find(attr.first);
 
     std::string dbc_text = std::move(attr.second.second);
@@ -367,11 +399,12 @@ void Database::parse(std::istream & reader)
     }
 
     switch (attr.second.first) {
+    /*
       case AttributeType::ENUM:
       {
         auto temp_attr = std::make_unique<EnumAttribute>(
           EnumAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
-        attribute_defs_.emplace_back(std::move(temp_attr));
+        // attribute_defs_.emplace_back(std::move(temp_attr));
       } break;
       case AttributeType::FLOAT:
       {
@@ -391,6 +424,7 @@ void Database::parse(std::istream & reader)
           StringAttribute(std::move(dbc_text), std::move(def_val_dbc_text)));
         attribute_defs_.emplace_back(std::move(temp_attr));
       } break;
+    */
     }
   }
 
