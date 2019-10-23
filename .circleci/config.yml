@@ -1,0 +1,25 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: autonomoustuff/docker-builds:bionic-non-root
+    steps:
+      - run:
+          name: Set Up Container
+          command: |
+            sudo apt-get -qqq update
+            sudo apt-get -qqq --no-install-recommends install build-essential cmake wget git
+      - checkout
+      - run:
+          name: Build
+          command: |
+            mkdir build && cd build
+            cmake ..
+            make
+      - run:
+          name: Run Examples
+          command: |
+            cd build
+            wget --no-check-certificate -O example.dbc https://raw.githubusercontent.com/astuff/pacmod_dbc/v3/as_pacmod.dbc
+            ./parse_types
+            ./read_dbc
