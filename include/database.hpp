@@ -54,13 +54,13 @@ public:
     std::unordered_map<unsigned int, Message> && messages,
     std::vector<Attribute *> && attribute_definitions);
 
-  std::string getVersion();
-  std::string getBusConfig();
-  std::vector<BusNode> getBusNodes();
-  std::unordered_map<unsigned int, Message> getMessages();
-  std::vector<const Attribute *> getAttributeDefinitions();
-  void writeDbcToFile(const std::string & dbc_path);
-  void writeDbcToStream(std::ostream & mem_stream);
+  std::string getVersion() const;
+  std::string getBusConfig() const;
+  std::vector<BusNode> getBusNodes() const;
+  std::unordered_map<unsigned int, Message> getMessages() const;
+  std::vector<const Attribute *> getAttributeDefinitions() const;
+  void writeDbcToFile(const std::string & dbc_path) const;
+  void writeDbcToStream(std::ostream & mem_stream) const;
 
 private:
   std::string version_;
@@ -69,7 +69,7 @@ private:
   std::unordered_map<unsigned int, Message> messages_;
   std::vector<std::unique_ptr<Attribute>> attribute_defs_;
 
-  void generate(std::ostream & writer);
+  void generate(std::ostream & writer) const;
   void parse(std::istream & reader);
   void saveMsg(std::unique_ptr<Message> & msg_ptr);
 };

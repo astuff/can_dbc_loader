@@ -45,8 +45,8 @@ public:
   BusNode & operator=(const BusNode & other);
   BusNode & operator=(BusNode && other) = default;
 
-  std::string getName();
-  const std::string * getComment();
+  std::string getName() const;
+  const std::string * getComment() const;
 
   friend class Database;
   friend class Message;

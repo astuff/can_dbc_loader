@@ -50,12 +50,12 @@ BusNode & BusNode::operator=(const BusNode & other)
   return *this = BusNode(other);
 }
 
-std::string BusNode::getName()
+std::string BusNode::getName() const
 {
   return name_;
 }
 
-const std::string * BusNode::getComment()
+const std::string * BusNode::getComment() const
 {
   return comment_.get();
 }

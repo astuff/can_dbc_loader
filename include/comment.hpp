@@ -35,7 +35,7 @@ namespace DbcLoader
 class Comment
 {
 public:
-  std::string getComment();
+  std::string getComment() const;
 
   friend class BusNode;
   friend class Database;
@@ -55,7 +55,7 @@ public:
     std::string && node_name,
     std::string && comment);
 
-  std::string getNodeName();
+  std::string getNodeName() const;
 
   friend class BusNode;
 
@@ -73,7 +73,7 @@ public:
   MessageComment(std::string && dbc_text);
   MessageComment(unsigned int msg_id, std::string && comment);
 
-  unsigned int getMsgId();
+  unsigned int getMsgId() const;
 
   friend class Message;
 
@@ -94,8 +94,8 @@ public:
     std::string && signal_name,
     std::string && comment);
 
-  unsigned int getMsgId();
-  std::string getSignalName();
+  unsigned int getMsgId() const;
+  std::string getSignalName() const;
 
   friend class Signal;
 

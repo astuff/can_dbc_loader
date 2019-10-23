@@ -56,29 +56,29 @@ public:
     float max,
     std::string && unit,
     std::vector<BusNode> && receiving_nodes,
-    std::map<int, std::string> && value_definitions =
-      std::map<int, std::string>());
+    std::map<unsigned int, std::string> && value_descriptions =
+      std::map<unsigned int, std::string>());
   ~Signal() = default;
   Signal(const Signal & other);
   Signal(Signal && other) = default;
   Signal & operator=(const Signal & other);
   Signal & operator=(Signal && other) = default;
 
-  std::string getName();
-  bool isMultiplexDef();
-  const unsigned int * getMultiplexId();
-  unsigned char getStartBit();
-  unsigned char getLength();
-  Order getEndianness();
-  bool isSigned();
-  float getFactor();
-  float getOffset();
-  float getMinVal();
-  float getMaxVal();
-  std::string getUnit();
-  std::vector<BusNode> getReceivingNodes();
-  std::map<int, std::string> getValueDefinitions();
-  const std::string * getComment();
+  std::string getName() const;
+  bool isMultiplexDef() const;
+  const unsigned int * getMultiplexId() const;
+  unsigned char getStartBit() const;
+  unsigned char getLength() const;
+  Order getEndianness() const;
+  bool isSigned() const;
+  float getFactor() const;
+  float getOffset() const;
+  float getMinVal() const;
+  float getMaxVal() const;
+  std::string getUnit() const;
+  std::vector<BusNode> getReceivingNodes() const;
+  std::map<unsigned int, std::string> getValueDescriptions() const;
+  const std::string * getComment() const;
 
   friend class Message;
   friend class Database;
@@ -97,7 +97,7 @@ private:
   float max_;
   std::string unit_;
   std::vector<BusNode> receiving_nodes_;
-  std::map<int, std::string> value_defs_;
+  std::map<unsigned int, std::string> value_descs_;
   std::unique_ptr<std::string> comment_;
 
   void generateText() override;

@@ -53,7 +53,7 @@ Signal::Signal(
   float max,
   std::string && unit,
   std::vector<BusNode> && receiving_nodes,
-  std::map<int, std::string> && value_definitions)
+  std::map<unsigned int, std::string> && value_descriptions)
   : name_(name),
     is_multiplex_def_(is_multiplex_def),
     multiplex_id_(new unsigned int(multiplex_id)),
@@ -67,7 +67,7 @@ Signal::Signal(
     max_(max),
     unit_(unit),
     receiving_nodes_(receiving_nodes),
-    value_defs_(value_definitions),
+    value_descs_(value_descriptions),
     comment_(nullptr)
 {
   generateText();
@@ -86,7 +86,7 @@ Signal::Signal(const Signal & other)
     max_(other.max_),
     unit_(other.unit_),
     receiving_nodes_(other.receiving_nodes_),
-    value_defs_(other.value_defs_)
+    value_descs_(other.value_descs_)
 {
   if (other.multiplex_id_) {
     multiplex_id_ = std::make_unique<unsigned int>(*(other.multiplex_id_));
@@ -106,77 +106,77 @@ Signal & Signal::operator=(const Signal & other)
   return *this = Signal(other);
 }
 
-std::string Signal::getName()
+std::string Signal::getName() const
 {
   return name_;
 }
 
-bool Signal::isMultiplexDef()
+bool Signal::isMultiplexDef() const
 {
   return is_multiplex_def_;
 }
 
-const unsigned int * Signal::getMultiplexId()
+const unsigned int * Signal::getMultiplexId() const
 {
   return multiplex_id_.get();
 }
 
-unsigned char Signal::getStartBit()
+unsigned char Signal::getStartBit() const
 {
   return start_bit_;
 }
 
-unsigned char Signal::getLength()
+unsigned char Signal::getLength() const
 {
   return length_;
 }
 
-Order Signal::getEndianness()
+Order Signal::getEndianness() const
 {
   return endianness_;
 }
 
-bool Signal::isSigned()
+bool Signal::isSigned() const
 {
   return is_signed_;
 }
 
-float Signal::getFactor()
+float Signal::getFactor() const
 {
   return factor_;
 }
 
-float Signal::getOffset()
+float Signal::getOffset() const
 {
   return offset_;
 }
 
-float Signal::getMinVal()
+float Signal::getMinVal() const
 {
   return min_;
 }
 
-float Signal::getMaxVal()
+float Signal::getMaxVal() const
 {
   return max_;
 }
 
-std::string Signal::getUnit()
+std::string Signal::getUnit() const
 {
   return unit_;
 }
 
-std::vector<BusNode> Signal::getReceivingNodes()
+std::vector<BusNode> Signal::getReceivingNodes() const
 {
   return receiving_nodes_;
 }
 
-std::map<int, std::string> Signal::getValueDefinitions()
+std::map<unsigned int, std::string> Signal::getValueDescriptions() const
 {
-  return value_defs_;
+  return value_descs_;
 }
 
-const std::string * Signal::getComment()
+const std::string * Signal::getComment() const
 {
   return comment_.get();
 }

@@ -81,7 +81,61 @@ Database::Database(
   }
 }
 
-void Database::writeDbcToFile(const std::string & dbc_path)
+std::string Database::getVersion() const
+{
+  return version_;
+}
+
+std::string Database::getBusConfig() const
+{
+  return bus_config_;
+}
+
+std::vector<BusNode> Database::getBusNodes() const
+{
+  return std::vector<BusNode>(bus_nodes_);
+}
+
+std::unordered_map<unsigned int, Message> Database::getMessages() const
+{
+  return std::unordered_map<unsigned int, Message>(messages_);
+}
+
+std::vector<const Attribute *> Database::getAttributeDefinitions() const
+{
+  std::vector<const Attribute *> temp_attr_defs;
+
+  for (auto & attr : attribute_defs_) {
+    auto attr_type = attr->getAttrType();
+
+    switch (attr_type) {
+      case AttributeType::ENUM:
+      {
+        auto enum_ptr = dynamic_cast<const EnumAttribute *>(attr.get());
+        temp_attr_defs.emplace_back(std::move(enum_ptr));
+      } break;
+      case AttributeType::FLOAT:
+      {
+        auto float_ptr = dynamic_cast<const FloatAttribute *>(attr.get());
+        temp_attr_defs.emplace_back(std::move(float_ptr));
+      } break;
+      case AttributeType::INT:
+      {
+        auto int_ptr = dynamic_cast<const IntAttribute *>(attr.get());
+        temp_attr_defs.emplace_back(std::move(int_ptr));
+      } break;
+      case AttributeType::STRING:
+      {
+        auto str_ptr = dynamic_cast<const StringAttribute *>(attr.get());
+        temp_attr_defs.emplace_back(std::move(str_ptr));
+      } break;
+    }
+  }
+
+  return temp_attr_defs;
+}
+
+void Database::writeDbcToFile(const std::string & dbc_path) const
 {
   std::ofstream file_writer;
   file_writer.open(dbc_path);
@@ -95,12 +149,12 @@ void Database::writeDbcToFile(const std::string & dbc_path)
   file_writer.close();
 }
 
-void Database::writeDbcToStream(std::ostream & mem_stream)
+void Database::writeDbcToStream(std::ostream & mem_stream) const
 {
   generate(mem_stream);
 }
 
-void Database::generate(std::ostream & output)
+void Database::generate(std::ostream & output) const
 {
   std::vector<BusNodeComment> bus_node_comments;
   std::vector<MessageComment> message_comments;
@@ -197,60 +251,6 @@ void Database::generate(std::ostream & output)
   // TODO(jwhitleyastuff): Write out attribute default values
   // TODO(jwhitleyastuff): Write out attribute values
   // TODO(jwhitleyastuff): Write out signal value lists
-}
-
-std::string Database::getVersion()
-{
-  return version_;
-}
-
-std::string Database::getBusConfig()
-{
-  return bus_config_;
-}
-
-std::vector<BusNode> Database::getBusNodes()
-{
-  return std::vector<BusNode>(bus_nodes_);
-}
-
-std::unordered_map<unsigned int, Message> Database::getMessages()
-{
-  return std::unordered_map<unsigned int, Message>(messages_);
-}
-
-std::vector<const Attribute *> Database::getAttributeDefinitions()
-{
-  std::vector<const Attribute *> temp_attr_defs;
-
-  for (auto & attr : attribute_defs_) {
-    auto attr_type = attr->getAttrType();
-
-    switch (attr_type) {
-      case AttributeType::ENUM:
-      {
-        auto enum_ptr = dynamic_cast<const EnumAttribute *>(attr.get());
-        temp_attr_defs.emplace_back(std::move(enum_ptr));
-      } break;
-      case AttributeType::FLOAT:
-      {
-        auto float_ptr = dynamic_cast<const FloatAttribute *>(attr.get());
-        temp_attr_defs.emplace_back(std::move(float_ptr));
-      } break;
-      case AttributeType::INT:
-      {
-        auto int_ptr = dynamic_cast<const IntAttribute *>(attr.get());
-        temp_attr_defs.emplace_back(std::move(int_ptr));
-      } break;
-      case AttributeType::STRING:
-      {
-        auto str_ptr = dynamic_cast<const StringAttribute *>(attr.get());
-        temp_attr_defs.emplace_back(std::move(str_ptr));
-      } break;
-    }
-  }
-
-  return temp_attr_defs;
 }
 
 void Database::parse(std::istream & reader)

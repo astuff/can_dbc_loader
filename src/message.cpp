@@ -78,37 +78,37 @@ Message & Message::operator=(const Message & other)
   return *this = Message(other);
 }
 
-unsigned int Message::getId()
+unsigned int Message::getId() const
 {
   return id_;
 }
 
-std::string Message::getName()
+std::string Message::getName() const
 {
   return name_;
 }
 
-unsigned char Message::getDlc()
+unsigned char Message::getDlc() const
 {
   return dlc_;
 }
 
-unsigned char Message::getLength()
+unsigned char Message::getLength() const
 {
   return dlcToLength(dlc_);
 }
 
-BusNode Message::getTransmittingNode()
+BusNode Message::getTransmittingNode() const
 {
   return BusNode(transmitting_node_);
 }
 
-std::unordered_map<std::string, Signal> Message::getSignals()
+std::unordered_map<std::string, Signal> Message::getSignals() const
 {
   return signals_;
 }
 
-const std::string * Message::getComment()
+const std::string * Message::getComment() const
 {
   return comment_.get();
 }
@@ -140,7 +140,7 @@ void Message::parse()
   name_ = name_.substr(0, name_.length() - 1);
 }
 
-unsigned char Message::dlcToLength(const unsigned char & dlc)
+unsigned char Message::dlcToLength(const unsigned char & dlc) const
 {
   return DLC_LENGTH[dlc];
 }

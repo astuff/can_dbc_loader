@@ -55,15 +55,15 @@ public:
   Message & operator=(const Message & other);
   Message & operator=(Message && other) = default;
 
-  unsigned int getId();
-  std::string getName();
-  unsigned char getDlc();
-  unsigned char getLength();
-  BusNode getTransmittingNode();
-  std::unordered_map<std::string, Signal> getSignals();
-  const std::string * getComment();
+  unsigned int getId() const;
+  std::string getName() const;
+  unsigned char getDlc() const;
+  unsigned char getLength() const;
+  BusNode getTransmittingNode() const;
+  std::unordered_map<std::string, Signal> getSignals() const;
+  const std::string * getComment() const;
 
-  unsigned char dlcToLength(const unsigned char & dlc);
+  unsigned char dlcToLength(const unsigned char & dlc) const;
 
   friend class Database;
 
