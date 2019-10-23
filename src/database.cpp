@@ -25,9 +25,12 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <string>
 #include <sstream>
+#include <unordered_map>
+#include <vector>
 
 namespace AS
 {
@@ -267,16 +270,12 @@ void Database::parse(std::istream & reader)
   std::unordered_map<std::string, std::string> attr_def_val_texts;
 
   while (std::getline(reader, line)) {
-    if (!line.empty()) {
+    // Ignore empty lines and lines starting with tab
+    if (!line.empty() && line.rfind("\t") != 0) {
       std::istringstream iss_line(line);
       std::string preamble;
 
       iss_line >> preamble;
-
-      // If there is a preamble but nothing else, don't try to parse
-      if (iss_line.peek() == std::char_traits<wchar_t>::eof()) {
-        continue;
-      }
 
       if (!version_found && preamble == PREAMBLES[0]) {  // VERSION
         iss_line >> version_;
@@ -328,6 +327,24 @@ void Database::parse(std::istream & reader)
         }
       } else if (preamble == PREAMBLES[6]) {  // SIGNAL VALUE LIST
         saveMsg(current_msg);
+
+        std::map<unsigned int, std::string> value_descs;
+
+        std::string temp_string;
+        std::string sig_name;
+
+        // Message ID
+        iss_line >> temp_string;
+
+        unsigned int id = std::stoul(temp_string);
+
+        // Signal Name
+        iss_line >> sig_name;
+
+        // Get all remaining values up to the ending semicolon
+        std::getline(iss_line, temp_string, ';');
+
+        // TODO(jwhitleyastuff): Finish parsing values
       } else if (preamble == PREAMBLES[7]) {  // ATTRIBUTE DEFINITION
         saveMsg(current_msg);
 
@@ -447,7 +464,7 @@ void Database::parse(std::istream & reader)
 
   // TODO(jwhitleyastuff): Apply attributes to DB objects
 
-  // TODO(jwhitleyastuff): Add value lists to signals
+  // TODO(jwhitleyastuff): Add signal value description lists to signals
 }
 
 void Database::saveMsg(std::unique_ptr<Message> & msg_ptr)
