@@ -38,7 +38,9 @@ int main(int argc, char ** argv)
   Database dbc(dbc_file);
 
   size_t signal_counter = 0;
-  size_t comment_counter = 0;
+  size_t bus_node_comment_counter = 0;
+  size_t message_comment_counter = 0;
+  size_t signal_comment_counter = 0;
   size_t bus_node_attr_counter = 0;
   size_t message_attr_counter = 0;
   size_t signal_attr_counter = 0;
@@ -50,7 +52,7 @@ int main(int argc, char ** argv)
 
   for (auto & bus_node : bus_nodes) {
     if (bus_node.getComment() != nullptr) {
-      comment_counter++;
+      bus_node_comment_counter++;
     }
   }
 
@@ -58,14 +60,14 @@ int main(int argc, char ** argv)
     auto signals = msg.second.getSignals();
 
     if (msg.second.getComment() != nullptr) {
-      comment_counter++;
+      message_comment_counter++;
     }
 
     signal_counter += signals.size();
 
     for (auto & sig : signals) {
       if (sig.second.getComment() != nullptr) {
-        comment_counter++;
+        signal_comment_counter++;
       }
     }
   }
@@ -113,6 +115,11 @@ int main(int argc, char ** argv)
   std::cout << "Found " << bus_nodes.size() << " bus nodes.\n";
   std::cout << "Found " << dbc.getMessages().size() << " messages.\n";
   std::cout << "Found " << signal_counter << " signals.\n";
+
+  size_t total_comments = bus_node_comment_counter + message_comment_counter + signal_comment_counter;
+
+  std::cout << "Found " << total_comments << " comments (Bus nodes: " << bus_node_comment_counter;
+  std::cout << ", Messages: " << message_comment_counter << ", Signals: " << signal_comment_counter << ").\n";
   std::cout << "Found " << attr_defs.size() << " attribute definitions (Bus nodes: " << bus_node_attr_counter;
   std::cout << ", Messages: " << message_attr_counter << ", Signals: " << signal_attr_counter << ").\n";
   std::cout << "Found " << attr_def_default_counter << " attribute default values.";

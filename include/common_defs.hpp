@@ -32,6 +32,8 @@ namespace CAN
 namespace DbcLoader
 {
 
+static constexpr unsigned int MAX_CAN_ID = 0x1FFFFFFF;
+
 static constexpr std::array<unsigned char, 16> DLC_LENGTH =
 { 0,  1,  2,  3,  4,  5,  6,  7,
   8, 12, 16, 20, 24, 32, 48, 64 };

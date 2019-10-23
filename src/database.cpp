@@ -454,7 +454,12 @@ void Database::saveMsg(std::unique_ptr<Message> & msg_ptr)
 {
   if (msg_ptr) {
     unsigned int id = msg_ptr->getId();
-    messages_.emplace(id, std::move(*(msg_ptr.release())));
+
+    // Some diagnostic messages are created by Vector tools
+    // with CAN IDs > 29 bits. Don't add them.
+    if (id <= MAX_CAN_ID) {
+      messages_.emplace(id, std::move(*(msg_ptr.release())));
+    }
   }
 }
 
