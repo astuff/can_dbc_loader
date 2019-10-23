@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
   std::cout << "Signal receiving bus nodes: ";
 
   for (auto & node : sig.getReceivingNodes()) {
-    std::cout << node.getName() << " ";
+    std::cout << node->getName() << " ";
   }
 
   std::cout << std::endl;

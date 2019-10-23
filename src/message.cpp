@@ -103,9 +103,15 @@ BusNode Message::getTransmittingNode() const
   return BusNode(transmitting_node_);
 }
 
-std::unordered_map<std::string, Signal> Message::getSignals() const
+std::unordered_map<std::string, const Signal *> Message::getSignals() const
 {
-  return signals_;
+  std::unordered_map<std::string, const Signal *> sigs;
+
+  for (auto & sig : signals_) {
+    sigs[sig.first] = &(sig.second);
+  }
+
+  return sigs;
 }
 
 const std::string * Message::getComment() const

@@ -94,14 +94,26 @@ std::string Database::getBusConfig() const
   return bus_config_;
 }
 
-std::vector<BusNode> Database::getBusNodes() const
+std::vector<const BusNode *> Database::getBusNodes() const
 {
-  return std::vector<BusNode>(bus_nodes_);
+  std::vector<const BusNode *> nodes;
+
+  for (auto & node : bus_nodes_) {
+    nodes.emplace_back(&node);
+  }
+
+  return nodes;
 }
 
-std::unordered_map<unsigned int, Message> Database::getMessages() const
+std::unordered_map<unsigned int, const Message *> Database::getMessages() const
 {
-  return std::unordered_map<unsigned int, Message>(messages_);
+  std::unordered_map<unsigned int, const Message *> msgs;
+
+  for (auto & msg : messages_) {
+    msgs[msg.first] = &(msg.second);
+  }
+
+  return msgs;
 }
 
 std::vector<const Attribute *> Database::getAttributeDefinitions() const

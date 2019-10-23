@@ -56,8 +56,8 @@ public:
 
   std::string getVersion() const;
   std::string getBusConfig() const;
-  std::vector<BusNode> getBusNodes() const;
-  std::unordered_map<unsigned int, Message> getMessages() const;
+  std::vector<const BusNode *> getBusNodes() const;
+  std::unordered_map<unsigned int, const Message *> getMessages() const;
   std::vector<const Attribute *> getAttributeDefinitions() const;
   void writeDbcToFile(const std::string & dbc_path) const;
   void writeDbcToStream(std::ostream & mem_stream) const;

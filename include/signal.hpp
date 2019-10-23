@@ -38,7 +38,7 @@ namespace DbcLoader
 {
 
 class Signal
-  : public DbcObj, public AttributeObject
+  : public DbcObj, public AttrObj
 {
 public:
   Signal(std::string && dbc_text);
@@ -76,8 +76,8 @@ public:
   float getMinVal() const;
   float getMaxVal() const;
   std::string getUnit() const;
-  std::vector<BusNode> getReceivingNodes() const;
-  std::map<unsigned int, std::string> getValueDescriptions() const;
+  std::vector<const BusNode *> getReceivingNodes() const;
+  std::map<unsigned int, const std::string *> getValueDescriptions() const;
   const std::string * getComment() const;
 
   friend class Message;

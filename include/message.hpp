@@ -39,7 +39,7 @@ namespace DbcLoader
 {
 
 class Message
-  : public DbcObj, public AttributeObject
+  : public DbcObj, public AttrObj
 {
 public:
   Message(std::string && dbc_text);
@@ -60,7 +60,7 @@ public:
   unsigned char getDlc() const;
   unsigned char getLength() const;
   BusNode getTransmittingNode() const;
-  std::unordered_map<std::string, Signal> getSignals() const;
+  std::unordered_map<std::string, const Signal *> getSignals() const;
   const std::string * getComment() const;
 
   unsigned char dlcToLength(const unsigned char & dlc) const;

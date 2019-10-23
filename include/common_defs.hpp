@@ -152,7 +152,7 @@ private:
   virtual void parse() = 0;
 };
 
-class AttributeObject
+class AttrObj
 {
 public:
   const std::unordered_map<std::string, std::string> getAttributeValues()

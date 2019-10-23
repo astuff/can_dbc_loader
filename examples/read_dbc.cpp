@@ -51,22 +51,22 @@ int main(int argc, char ** argv)
   auto attr_defs = dbc.getAttributeDefinitions();
 
   for (auto & bus_node : bus_nodes) {
-    if (bus_node.getComment() != nullptr) {
+    if (bus_node->getComment() != nullptr) {
       bus_node_comment_counter++;
     }
   }
 
   for (auto & msg : messages) {
-    auto signals = msg.second.getSignals();
+    auto signals = msg.second->getSignals();
 
-    if (msg.second.getComment() != nullptr) {
+    if (msg.second->getComment() != nullptr) {
       message_comment_counter++;
     }
 
     signal_counter += signals.size();
 
     for (auto & sig : signals) {
-      if (sig.second.getComment() != nullptr) {
+      if (sig.second->getComment() != nullptr) {
         signal_comment_counter++;
       }
     }

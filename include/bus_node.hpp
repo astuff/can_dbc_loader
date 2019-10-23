@@ -35,7 +35,7 @@ namespace DbcLoader
 {
 
 class BusNode
-  : public AttributeObject
+  : public AttrObj
 {
 public:
   BusNode(std::string && node_name);

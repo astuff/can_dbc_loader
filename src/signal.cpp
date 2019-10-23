@@ -166,14 +166,26 @@ std::string Signal::getUnit() const
   return unit_;
 }
 
-std::vector<BusNode> Signal::getReceivingNodes() const
+std::vector<const BusNode *> Signal::getReceivingNodes() const
 {
-  return receiving_nodes_;
+  std::vector<const BusNode *> nodes;
+
+  for (auto & node : receiving_nodes_) {
+    nodes.push_back(&node);
+  }
+
+  return nodes;
 }
 
-std::map<unsigned int, std::string> Signal::getValueDescriptions() const
+std::map<unsigned int, const std::string *> Signal::getValueDescriptions() const
 {
-  return value_descs_;
+  std::map<unsigned int, const std::string *> descs;
+
+  for (auto & desc : value_descs_) {
+    descs[desc.first] = &(desc.second);
+  }
+
+  return descs;
 }
 
 const std::string * Signal::getComment() const
