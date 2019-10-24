@@ -341,6 +341,11 @@ void Signal::parse()
   }
 }
 
+SignalTranscoder::SignalTranscoder(Signal * dbc_sig)
+  : sig_def_(dbc_sig)
+{
+}
+
 }  // namespace DbcLoader
 }  // namespace CAN
 }  // namespace AS

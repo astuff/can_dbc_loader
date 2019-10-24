@@ -63,9 +63,10 @@ public:
   std::unordered_map<std::string, const Signal *> getSignals() const;
   const std::string * getComment() const;
 
-  unsigned char dlcToLength(const unsigned char & dlc) const;
+  static unsigned char dlcToLength(const unsigned char & dlc);
 
   friend class Database;
+  friend class MessageTranscoder;
 
 private:
   unsigned int id_;
@@ -77,6 +78,23 @@ private:
   
   void generateText() override;
   void parse() override;
+};
+
+class MessageTranscoder
+{
+public:
+  MessageTranscoder(Message * dbc_msg);
+
+  const Message * getMessageDef();
+  void decode(std::vector<uint8_t> && raw_data, TranscodeError * err = nullptr);
+  std::vector<uint8_t> encode(TranscodeError * err = nullptr);
+
+private:
+  void decodeRawData(TranscodeError * err);
+
+  Message * msg_def_;
+  std::vector<uint8_t> data_;
+  std::unordered_map<std::string, SignalTranscoder> signal_xcoders_;
 };
 
 }  // namespace DbcLoader

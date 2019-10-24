@@ -78,6 +78,15 @@ static const std::array<std::string, 10> PREAMBLES =
   "BA_"           // ATTRIBUTE VALUE
 };
 
+enum class AttributeType
+{
+  ENUM,
+  FLOAT,
+  HEX,
+  INT,
+  STRING
+};
+
 enum class DbcObjType
 {
   VERSION,
@@ -91,19 +100,15 @@ enum class DbcObjType
   ATTRIBUTE_VAL
 };
 
-enum class AttributeType
-{
-  ENUM,
-  FLOAT,
-  HEX,
-  INT,
-  STRING
-};
-
 enum class Order
 {
   BE,
   LE
+};
+
+enum class TranscodeErrorType
+{
+  NONE
 };
 
 struct DbcReadException
@@ -167,6 +172,14 @@ public:
 
 protected:
   std::unordered_map<std::string, std::string> attribute_values_;
+};
+
+struct TranscodeError
+{
+  TranscodeError(TranscodeErrorType type, std::string desc)
+    : type(type), desc(desc) {};
+  TranscodeErrorType type;
+  std::string desc;
 };
 
 }  // namespace DbcLoader

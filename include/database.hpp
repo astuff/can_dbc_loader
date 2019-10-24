@@ -61,6 +61,7 @@ public:
   std::vector<const Attribute *> getAttributeDefinitions() const;
   void writeDbcToFile(const std::string & dbc_path) const;
   void writeDbcToStream(std::ostream & mem_stream) const;
+  std::unordered_map<unsigned int, MessageTranscoder> getTranscoders();
 
 private:
   std::string version_;

@@ -80,8 +80,8 @@ public:
   std::map<unsigned int, const std::string *> getValueDescriptions() const;
   const std::string * getComment() const;
 
-  friend class Message;
   friend class Database;
+  friend class Message;
 
 private:
   std::string name_;
@@ -102,6 +102,15 @@ private:
 
   void generateText() override;
   void parse() override;
+};
+
+class SignalTranscoder
+{
+public:
+  SignalTranscoder(Signal * dbc_sig);
+
+private:
+  Signal * sig_def_;
 };
 
 }  // namespace DbcLoader

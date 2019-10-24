@@ -146,9 +146,43 @@ void Message::parse()
   name_ = name_.substr(0, name_.length() - 1);
 }
 
-unsigned char Message::dlcToLength(const unsigned char & dlc) const
+unsigned char Message::dlcToLength(const unsigned char & dlc)
 {
   return DLC_LENGTH[dlc];
+}
+
+MessageTranscoder::MessageTranscoder(Message * dbc_msg)
+  : msg_def_(dbc_msg),
+    data_()
+{
+  data_.assign(Message::dlcToLength(dbc_msg->getDlc()), 0);
+
+  for (auto sig = msg_def_->signals_.begin(); sig != msg_def_->signals_.end(); ++sig) {
+    signal_xcoders_.emplace(sig->first, &(sig->second));
+  }
+}
+
+const Message * MessageTranscoder::getMessageDef()
+{
+  return msg_def_;
+}
+
+void MessageTranscoder::decode(std::vector<uint8_t> && raw_data, TranscodeError * err)
+{
+  data_ = std::move(raw_data);
+  decodeRawData(err);
+}
+
+void MessageTranscoder::decodeRawData(TranscodeError * err)
+{
+  err = new TranscodeError(TranscodeErrorType::NONE, "");
+
+  // TODO(jwhitleyastuff): Do the thing.
+}
+
+std::vector<uint8_t> MessageTranscoder::encode(TranscodeError * err)
+{
+  return std::vector<uint8_t>(data_.begin(), data_.end());
 }
 
 }  // namespace DbcLoader

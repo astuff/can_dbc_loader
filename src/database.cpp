@@ -169,6 +169,17 @@ void Database::writeDbcToStream(std::ostream & mem_stream) const
   generate(mem_stream);
 }
 
+std::unordered_map<unsigned int, MessageTranscoder> Database::getTranscoders()
+{
+  std::unordered_map<unsigned int, MessageTranscoder> xcoders;
+
+  for (auto msg = messages_.begin(); msg != messages_.end(); ++msg) {
+    xcoders.emplace(msg->first, &(msg->second));
+  }
+
+  return xcoders;
+}
+
 void Database::generate(std::ostream & output) const
 {
   std::vector<BusNodeComment> bus_node_comments;
